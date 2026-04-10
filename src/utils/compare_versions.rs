@@ -227,10 +227,7 @@ mod tests {
 
     #[test]
     fn test_rc_stable_boundary() {
-        assert_eq!(
-            compare_versions("0.3.0-rc.0", "0.3.0"),
-            Ordering::Less
-        );
+        assert_eq!(compare_versions("0.3.0-rc.0", "0.3.0"), Ordering::Less);
     }
 
     #[test]

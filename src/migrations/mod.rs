@@ -289,10 +289,7 @@ mod tests {
             metadata.changelog.is_empty(),
             "Same version should have empty changelog"
         );
-        assert!(
-            !metadata.breaking,
-            "Same version should not be breaking"
-        );
+        assert!(!metadata.breaking, "Same version should not be breaking");
     }
 
     #[test]

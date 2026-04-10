@@ -98,7 +98,10 @@ fn install_paths() -> HashMap<&'static str, &'static str> {
 /// Maps provider prefixes to raw file URL patterns.
 fn raw_url_patterns() -> HashMap<&'static str, &'static str> {
     let mut m = HashMap::new();
-    m.insert("gh", "https://raw.githubusercontent.com/{repo}/{ref}/{subdir}");
+    m.insert(
+        "gh",
+        "https://raw.githubusercontent.com/{repo}/{ref}/{subdir}",
+    );
     m.insert(
         "github",
         "https://raw.githubusercontent.com/{repo}/{ref}/{subdir}",
@@ -134,10 +137,7 @@ const KNOWN_PUBLIC_DOMAINS: &[&str] = &["github.com", "gitlab.com", "bitbucket.o
 /// Returns the original string if it's not a recognized HTTPS URL.
 pub fn normalize_registry_source(source: &str) -> String {
     let patterns: Vec<(regex::Regex, &str)> = vec![
-        (
-            regex::Regex::new(r"^https?://github\.com/").unwrap(),
-            "gh:",
-        ),
+        (regex::Regex::new(r"^https?://github\.com/").unwrap(), "gh:"),
         (
             regex::Regex::new(r"^https?://gitlab\.com/").unwrap(),
             "gitlab:",
@@ -148,10 +148,8 @@ pub fn normalize_registry_source(source: &str) -> String {
         ),
     ];
 
-    let tree_re = regex::Regex::new(
-        r"^([^/]+/[^/]+)/tree/([^/]+)(?:/(.+?))?(?:\.git)?/?$",
-    )
-    .unwrap();
+    let tree_re =
+        regex::Regex::new(r"^([^/]+/[^/]+)/tree/([^/]+)(?:/(.+?))?(?:\.git)?/?$").unwrap();
     let git_suffix_re = regex::Regex::new(r"\.git/?$").unwrap();
 
     for (re, prefix) in &patterns {
@@ -192,8 +190,7 @@ pub fn parse_registry_source(source: &str) -> Result<RegistrySource> {
 
     // SSH URL: git@host:org/repo[.git] or ssh://git@host[:port]/org/repo[.git]
     let ssh_re1 = regex::Regex::new(r"^git@([^:]+):(.+?)(?:\.git)?/?$").unwrap();
-    let ssh_re2 =
-        regex::Regex::new(r"^ssh://git@([^/:]+)(?::\d+)?/(.+?)(?:\.git)?/?$").unwrap();
+    let ssh_re2 = regex::Regex::new(r"^ssh://git@([^/:]+)(?::\d+)?/(.+?)(?:\.git)?/?$").unwrap();
 
     let ssh_match = ssh_re1
         .captures(source)
@@ -213,18 +210,15 @@ pub fn parse_registry_source(source: &str) -> Result<RegistrySource> {
 
     // HTTPS URL to unknown domain.
     if host.is_none() {
-        let https_re =
-            regex::Regex::new(r"^https?://([^/]+)/(.+?)(?:\.git)?/?$").unwrap();
+        let https_re = regex::Regex::new(r"^https?://([^/]+)/(.+?)(?:\.git)?/?$").unwrap();
         if let Some(caps) = https_re.captures(source) {
             let domain = &caps[1];
             if !KNOWN_PUBLIC_DOMAINS.contains(&domain) {
                 host = Some(domain.to_string());
                 let path_part = &caps[2];
                 // Handle GitLab browse URLs: /org/repo/-/tree/branch/path
-                let tree_re = regex::Regex::new(
-                    r"^([^/]+/[^/]+)(?:/-)?/tree/([^/]+)(?:/(.+?))?$",
-                )
-                .unwrap();
+                let tree_re =
+                    regex::Regex::new(r"^([^/]+/[^/]+)(?:/-)?/tree/([^/]+)(?:/(.+?))?$").unwrap();
                 if let Some(tree_caps) = tree_re.captures(path_part) {
                     let repo_path = &tree_caps[1];
                     let ref_ = &tree_caps[2];
@@ -247,12 +241,12 @@ pub fn parse_registry_source(source: &str) -> Result<RegistrySource> {
         .unwrap_or_else(|| normalize_registry_source(source));
 
     // Extract provider prefix.
-    let colon_index = normalized
-        .find(':')
-        .ok_or_else(|| anyhow!(
+    let colon_index = normalized.find(':').ok_or_else(|| {
+        anyhow!(
             "Invalid registry source \"{}\". Expected format: gh:user/repo/path",
             source
-        ))?;
+        )
+    })?;
 
     let provider = &normalized[..colon_index];
     let rest = &normalized[colon_index + 1..];
@@ -305,8 +299,7 @@ pub fn parse_registry_source(source: &str) -> Result<RegistrySource> {
     // Replace public domain with self-hosted host in rawBaseUrl.
     if let Some(ref h) = host {
         if provider == "gitlab" {
-            raw_base_url =
-                raw_base_url.replace("https://gitlab.com", &format!("https://{}", h));
+            raw_base_url = raw_base_url.replace("https://gitlab.com", &format!("https://{}", h));
         }
     }
 
@@ -401,15 +394,18 @@ pub fn find_template(template_id: &str, index_url: Option<&str>) -> Option<SpecT
 /// Get the installation path for a template type.
 pub fn get_install_path(cwd: &Path, template_type: &str) -> PathBuf {
     let paths = install_paths();
-    let relative_path = paths.get(template_type).copied().unwrap_or(".harness-cli/spec");
+    let relative_path = paths
+        .get(template_type)
+        .copied()
+        .unwrap_or(".harness-cli/spec");
     cwd.join(relative_path)
 }
 
 /// Parse a giget-style source string into (provider, repo, subdir, ref).
 fn parse_giget_source(source: &str) -> Result<(String, String, String, String)> {
-    let colon_idx = source.find(':').ok_or_else(|| {
-        anyhow!("Invalid giget source: {}", source)
-    })?;
+    let colon_idx = source
+        .find(':')
+        .ok_or_else(|| anyhow!("Invalid giget source: {}", source))?;
 
     let provider = &source[..colon_idx];
     let rest = &source[colon_idx + 1..];
@@ -545,7 +541,9 @@ fn download_via_git(giget_source: &str, dest_dir: &Path) -> Result<()> {
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null());
 
-    let status = cmd.status().map_err(|e| anyhow!("Failed to run git: {}", e))?;
+    let status = cmd
+        .status()
+        .map_err(|e| anyhow!("Failed to run git: {}", e))?;
 
     if !status.success() {
         return Err(anyhow!(
@@ -607,7 +605,9 @@ pub fn download_template_by_id(
                 if templates.is_empty() && !is_not_found {
                     return DownloadResult {
                         success: false,
-                        message: "Could not reach registry. Check your network connection and try again.".to_string(),
+                        message:
+                            "Could not reach registry. Check your network connection and try again."
+                                .to_string(),
                         skipped: false,
                     };
                 }
@@ -699,9 +699,8 @@ pub fn download_template_by_id(
             {
                 DownloadResult {
                     success: false,
-                    message:
-                        "Could not reach template server. Check your network connection."
-                            .to_string(),
+                    message: "Could not reach template server. Check your network connection."
+                        .to_string(),
                     skipped: false,
                 }
             } else {
@@ -766,9 +765,8 @@ pub fn download_registry_direct(
             {
                 DownloadResult {
                     success: false,
-                    message:
-                        "Could not reach template server. Check your network connection."
-                            .to_string(),
+                    message: "Could not reach template server. Check your network connection."
+                        .to_string(),
                     skipped: false,
                 }
             } else {
@@ -806,8 +804,7 @@ mod tests {
 
     #[test]
     fn test_normalize_github_tree() {
-        let result =
-            normalize_registry_source("https://github.com/user/repo/tree/dev/some/path");
+        let result = normalize_registry_source("https://github.com/user/repo/tree/dev/some/path");
         assert_eq!(result, "gh:user/repo/some/path#dev");
     }
 

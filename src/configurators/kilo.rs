@@ -21,10 +21,7 @@ pub fn collect_templates() -> HashMap<String, String> {
     let mut files = HashMap::new();
 
     for wf in tmpl::get_all_workflows() {
-        files.insert(
-            format!(".kilocode/workflows/{}.md", wf.name),
-            wf.content,
-        );
+        files.insert(format!(".kilocode/workflows/{}.md", wf.name), wf.content);
     }
 
     files

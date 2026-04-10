@@ -579,11 +579,7 @@ mod tests {
     fn test_non_empty_names() {
         for tool in AITool::all() {
             let cfg = get_tool_config(*tool);
-            assert!(
-                !cfg.name.is_empty(),
-                "Empty name for {:?}",
-                tool
-            );
+            assert!(!cfg.name.is_empty(), "Empty name for {:?}", tool);
         }
     }
 

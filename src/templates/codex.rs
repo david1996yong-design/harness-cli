@@ -119,8 +119,7 @@ pub fn get_hooks_config() -> String {
 
 /// Get config.toml template.
 pub fn get_config_template() -> ConfigTemplate {
-    let content =
-        get_embedded_file::<CodexTemplates>("config.toml").unwrap_or_default();
+    let content = get_embedded_file::<CodexTemplates>("config.toml").unwrap_or_default();
     ConfigTemplate {
         target_path: "config.toml".to_string(),
         content,
@@ -134,7 +133,10 @@ mod tests {
     #[test]
     fn test_get_all_skills_non_empty() {
         let skills = get_all_skills();
-        assert!(!skills.is_empty(), "Codex shared skills should be non-empty");
+        assert!(
+            !skills.is_empty(),
+            "Codex shared skills should be non-empty"
+        );
     }
 
     #[test]

@@ -1,0 +1,47 @@
+{
+  "id": "kb-tech-layer-v2",
+  "name": "kb-tech-layer-v2",
+  "title": "KB 新增 tech 系统架构知识库",
+  "description": "",
+  "status": "planning",
+  "dev_type": "backend",
+  "scope": "kb-tech-layer",
+  "package": null,
+  "priority": "P2",
+  "creator": "david1996yong",
+  "assignee": "david1996yong",
+  "createdAt": "2026-04-10",
+  "completedAt": null,
+  "branch": "feature/kb-tech-layer-v2",
+  "base_branch": "master",
+  "worktree_path": "/home/zy/harness-cli-worktrees/feature/kb-tech-layer-v2",
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "implement"
+    },
+    {
+      "phase": 2,
+      "action": "check"
+    },
+    {
+      "phase": 3,
+      "action": "finish"
+    },
+    {
+      "phase": 4,
+      "action": "direct-merge"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {},
+  "merge_mode": "direct",
+  "merge_target": "master"
+}

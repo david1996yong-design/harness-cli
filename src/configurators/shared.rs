@@ -44,7 +44,10 @@ mod tests {
         let input = "run {{PYTHON_CMD}} script.py && {{PYTHON_CMD}} other.py";
         let result = resolve_placeholders(input);
         let expected_cmd = if cfg!(windows) { "python" } else { "python3" };
-        let expected = format!("run {} script.py && {} other.py", expected_cmd, expected_cmd);
+        let expected = format!(
+            "run {} script.py && {} other.py",
+            expected_cmd, expected_cmd
+        );
         assert_eq!(result, expected);
     }
 }

@@ -81,10 +81,7 @@ enum Commands {
             help = "Use a remote spec template (e.g., electron-fullstack)"
         )]
         template: Option<String>,
-        #[arg(
-            long,
-            help = "Overwrite existing spec directory when using template"
-        )]
+        #[arg(long, help = "Overwrite existing spec directory when using template")]
         overwrite: bool,
         #[arg(long, help = "Only add missing files when using template")]
         append: bool,
@@ -106,19 +103,11 @@ enum Commands {
     Update {
         #[arg(long, help = "Preview changes without applying them")]
         dry_run: bool,
-        #[arg(
-            short = 'f',
-            long,
-            help = "Overwrite all changed files without asking"
-        )]
+        #[arg(short = 'f', long, help = "Overwrite all changed files without asking")]
         force: bool,
         #[arg(short = 's', long, help = "Skip all changed files without asking")]
         skip_all: bool,
-        #[arg(
-            short = 'n',
-            long,
-            help = "Create .new copies for all changed files"
-        )]
+        #[arg(short = 'n', long, help = "Create .new copies for all changed files")]
         create_new: bool,
         #[arg(long, help = "Allow downgrading to an older version")]
         allow_downgrade: bool,

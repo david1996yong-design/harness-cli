@@ -12,9 +12,8 @@ use super::extract::{get_embedded_file, list_files, HarnessCliTemplates};
 /// Get `config.yaml` content.
 pub fn config_yaml_template() -> &'static str {
     static CONTENT: std::sync::OnceLock<String> = std::sync::OnceLock::new();
-    CONTENT.get_or_init(|| {
-        get_embedded_file::<HarnessCliTemplates>("config.yaml").unwrap_or_default()
-    })
+    CONTENT
+        .get_or_init(|| get_embedded_file::<HarnessCliTemplates>("config.yaml").unwrap_or_default())
 }
 
 /// Get `worktree.yaml` content.
@@ -36,9 +35,8 @@ pub fn gitignore_template() -> &'static str {
 /// Get `workflow.md` content.
 pub fn workflow_md_template() -> &'static str {
     static CONTENT: std::sync::OnceLock<String> = std::sync::OnceLock::new();
-    CONTENT.get_or_init(|| {
-        get_embedded_file::<HarnessCliTemplates>("workflow.md").unwrap_or_default()
-    })
+    CONTENT
+        .get_or_init(|| get_embedded_file::<HarnessCliTemplates>("workflow.md").unwrap_or_default())
 }
 
 // ---------------------------------------------------------------------------
@@ -69,7 +67,10 @@ mod tests {
     #[test]
     fn test_config_yaml_non_empty() {
         let content = config_yaml_template();
-        assert!(!content.is_empty(), "config.yaml template should be non-empty");
+        assert!(
+            !content.is_empty(),
+            "config.yaml template should be non-empty"
+        );
     }
 
     #[test]
@@ -84,7 +85,10 @@ mod tests {
     #[test]
     fn test_gitignore_non_empty() {
         let content = gitignore_template();
-        assert!(!content.is_empty(), "gitignore template should be non-empty");
+        assert!(
+            !content.is_empty(),
+            "gitignore template should be non-empty"
+        );
     }
 
     #[test]

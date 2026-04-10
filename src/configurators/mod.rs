@@ -86,9 +86,9 @@ pub fn get_platforms_with_python_hooks() -> Vec<AITool> {
 /// Check if a path starts with any managed directory.
 pub fn is_managed_path(dir_path: &str) -> bool {
     let normalized = dir_path.replace('\\', "/");
-    all_managed_dirs().iter().any(|d| {
-        normalized.starts_with(&format!("{}/", d)) || normalized == *d
-    })
+    all_managed_dirs()
+        .iter()
+        .any(|d| normalized.starts_with(&format!("{}/", d)) || normalized == *d)
 }
 
 /// Check if a directory name is a managed root directory.
@@ -209,7 +209,11 @@ mod tests {
     fn test_all_managed_dirs_no_duplicates() {
         let dirs = all_managed_dirs();
         let unique: std::collections::HashSet<&String> = dirs.iter().collect();
-        assert_eq!(dirs.len(), unique.len(), "Managed dirs should have no duplicates");
+        assert_eq!(
+            dirs.len(),
+            unique.len(),
+            "Managed dirs should have no duplicates"
+        );
     }
 
     #[test]
@@ -246,7 +250,10 @@ mod tests {
 
     #[test]
     fn test_is_managed_path_empty() {
-        assert!(!is_managed_path(""), "Empty string should not be a managed path");
+        assert!(
+            !is_managed_path(""),
+            "Empty string should not be a managed path"
+        );
     }
 
     #[test]
@@ -286,7 +293,11 @@ mod tests {
 
     #[test]
     fn test_resolve_cli_flag_empty() {
-        assert_eq!(resolve_cli_flag(""), None, "Empty string should resolve to None");
+        assert_eq!(
+            resolve_cli_flag(""),
+            None,
+            "Empty string should resolve to None"
+        );
     }
 
     #[test]
@@ -459,7 +470,10 @@ mod tests {
         assert!(result.is_some(), "Codex should return Some");
         let map = result.unwrap();
         let has_skills = map.keys().any(|k| k.starts_with(".agents/skills/"));
-        assert!(has_skills, "Codex templates should track .agents/skills/ paths");
+        assert!(
+            has_skills,
+            "Codex templates should track .agents/skills/ paths"
+        );
     }
 
     #[test]

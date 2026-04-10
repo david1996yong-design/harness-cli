@@ -52,7 +52,13 @@ fn sanitize_pkg_name(name: &str) -> String {
     };
     stripped
         .chars()
-        .map(|c| if c.is_alphanumeric() || c == '-' || c == '_' { c } else { '-' })
+        .map(|c| {
+            if c.is_alphanumeric() || c == '-' || c == '_' {
+                c
+            } else {
+                '-'
+            }
+        })
         .collect()
 }
 
@@ -154,12 +160,30 @@ fn write_backend_docs(spec_base: &Path) -> Result<()> {
     ensure_dir(&backend_dir)?;
 
     let docs = [
-        DocDef { name: "index.md", content: markdown::backend_index_content() },
-        DocDef { name: "directory-structure.md", content: markdown::backend_directory_structure_content() },
-        DocDef { name: "database-guidelines.md", content: markdown::backend_database_guidelines_content() },
-        DocDef { name: "logging-guidelines.md", content: markdown::backend_logging_guidelines_content() },
-        DocDef { name: "quality-guidelines.md", content: markdown::backend_quality_guidelines_content() },
-        DocDef { name: "error-handling.md", content: markdown::backend_error_handling_content() },
+        DocDef {
+            name: "index.md",
+            content: markdown::backend_index_content(),
+        },
+        DocDef {
+            name: "directory-structure.md",
+            content: markdown::backend_directory_structure_content(),
+        },
+        DocDef {
+            name: "database-guidelines.md",
+            content: markdown::backend_database_guidelines_content(),
+        },
+        DocDef {
+            name: "logging-guidelines.md",
+            content: markdown::backend_logging_guidelines_content(),
+        },
+        DocDef {
+            name: "quality-guidelines.md",
+            content: markdown::backend_quality_guidelines_content(),
+        },
+        DocDef {
+            name: "error-handling.md",
+            content: markdown::backend_error_handling_content(),
+        },
     ];
 
     for doc in &docs {
@@ -173,13 +197,34 @@ fn write_frontend_docs(spec_base: &Path) -> Result<()> {
     ensure_dir(&frontend_dir)?;
 
     let docs = [
-        DocDef { name: "index.md", content: markdown::frontend_index_content() },
-        DocDef { name: "directory-structure.md", content: markdown::frontend_directory_structure_content() },
-        DocDef { name: "type-safety.md", content: markdown::frontend_type_safety_content() },
-        DocDef { name: "hook-guidelines.md", content: markdown::frontend_hook_guidelines_content() },
-        DocDef { name: "component-guidelines.md", content: markdown::frontend_component_guidelines_content() },
-        DocDef { name: "quality-guidelines.md", content: markdown::frontend_quality_guidelines_content() },
-        DocDef { name: "state-management.md", content: markdown::frontend_state_management_content() },
+        DocDef {
+            name: "index.md",
+            content: markdown::frontend_index_content(),
+        },
+        DocDef {
+            name: "directory-structure.md",
+            content: markdown::frontend_directory_structure_content(),
+        },
+        DocDef {
+            name: "type-safety.md",
+            content: markdown::frontend_type_safety_content(),
+        },
+        DocDef {
+            name: "hook-guidelines.md",
+            content: markdown::frontend_hook_guidelines_content(),
+        },
+        DocDef {
+            name: "component-guidelines.md",
+            content: markdown::frontend_component_guidelines_content(),
+        },
+        DocDef {
+            name: "quality-guidelines.md",
+            content: markdown::frontend_quality_guidelines_content(),
+        },
+        DocDef {
+            name: "state-management.md",
+            content: markdown::frontend_state_management_content(),
+        },
     ];
 
     for doc in &docs {
@@ -212,9 +257,18 @@ fn create_spec_templates(
     ensure_dir(&guides_dir)?;
 
     let guides = [
-        DocDef { name: "index.md", content: markdown::guides_index_content() },
-        DocDef { name: "cross-layer-thinking-guide.md", content: markdown::guides_cross_layer_thinking_guide_content() },
-        DocDef { name: "code-reuse-thinking-guide.md", content: markdown::guides_code_reuse_thinking_guide_content() },
+        DocDef {
+            name: "index.md",
+            content: markdown::guides_index_content(),
+        },
+        DocDef {
+            name: "cross-layer-thinking-guide.md",
+            content: markdown::guides_cross_layer_thinking_guide_content(),
+        },
+        DocDef {
+            name: "code-reuse-thinking-guide.md",
+            content: markdown::guides_code_reuse_thinking_guide_content(),
+        },
     ];
     for doc in &guides {
         write_file(&guides_dir.join(doc.name), doc.content, false)?;

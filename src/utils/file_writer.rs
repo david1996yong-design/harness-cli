@@ -140,14 +140,16 @@ pub fn write_file(file_path: &Path, content: &str, executable: bool) -> Result<b
             if executable {
                 set_executable(file_path);
             }
-            println!("{}", format!("  \u{21bb} Overwritten: {}", display_path).yellow());
+            println!(
+                "{}",
+                format!("  \u{21bb} Overwritten: {}", display_path).yellow()
+            );
             Ok(true)
         }
         WriteMode::Skip => {
             println!(
                 "{}",
-                format!("  \u{25cb} Skipped: {} (already exists)", display_path)
-                    .dimmed()
+                format!("  \u{25cb} Skipped: {} (already exists)", display_path).dimmed()
             );
             Ok(false)
         }

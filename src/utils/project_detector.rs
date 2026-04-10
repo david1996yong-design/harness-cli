@@ -134,10 +134,7 @@ fn file_exists(cwd: &Path, filename: &str) -> bool {
             return false;
         }
 
-        let regex_pattern = format!(
-            "^{}$",
-            pattern.replace('.', r"\.").replace('*', ".*")
-        );
+        let regex_pattern = format!("^{}$", pattern.replace('.', r"\.").replace('*', ".*"));
         let re = match Regex::new(&regex_pattern) {
             Ok(r) => r,
             Err(_) => return false,
@@ -253,12 +250,7 @@ fn dir_exists(cwd: &Path, rel_path: &str) -> bool {
 
 /// Recursively match glob segments against the filesystem.
 /// Handles `*` as a single-level directory wildcard.
-fn match_glob_segments(
-    cwd: &Path,
-    segments: &[&str],
-    index: usize,
-    current: &str,
-) -> Vec<String> {
+fn match_glob_segments(cwd: &Path, segments: &[&str], index: usize, current: &str) -> Vec<String> {
     if index >= segments.len() {
         return if dir_exists(cwd, current) {
             vec![current.to_string()]
@@ -294,10 +286,7 @@ fn match_glob_segments(
         .filter_map(|e| e.ok())
         .filter(|e| {
             e.file_type().map(|ft| ft.is_dir()).unwrap_or(false)
-                && !e
-                    .file_name()
-                    .to_string_lossy()
-                    .starts_with('.')
+                && !e.file_name().to_string_lossy().starts_with('.')
         })
         .flat_map(|e| {
             let name = e.file_name().to_string_lossy().to_string();
@@ -382,11 +371,7 @@ fn read_package_name(cwd: &Path, pkg_path: &str) -> String {
         let re = Regex::new(r"(?m)^module\s+(\S+)").unwrap();
         if let Some(caps) = re.captures(&content) {
             let module = &caps[1];
-            return module
-                .rsplit('/')
-                .next()
-                .unwrap_or(&fallback())
-                .to_string();
+            return module.rsplit('/').next().unwrap_or(&fallback()).to_string();
         }
     }
 
@@ -442,7 +427,10 @@ fn parse_npm_workspaces(cwd: &Path) -> Option<Vec<String>> {
     let ws = pkg.get("workspaces")?;
 
     if let Some(arr) = ws.as_array() {
-        let patterns: Vec<String> = arr.iter().filter_map(|v| v.as_str().map(String::from)).collect();
+        let patterns: Vec<String> = arr
+            .iter()
+            .filter_map(|v| v.as_str().map(String::from))
+            .collect();
         if patterns.is_empty() {
             None
         } else {
@@ -757,11 +745,7 @@ mod tests {
     #[test]
     fn test_backend_cargo_toml() {
         let tmp = tempfile::tempdir().unwrap();
-        std::fs::write(
-            tmp.path().join("Cargo.toml"),
-            "[package]\nname = \"test\"",
-        )
-        .unwrap();
+        std::fs::write(tmp.path().join("Cargo.toml"), "[package]\nname = \"test\"").unwrap();
         assert_eq!(detect_project_type(tmp.path()), ProjectType::Backend);
     }
 
@@ -834,11 +818,7 @@ mod tests {
     #[test]
     fn test_description_backend() {
         let desc = get_project_type_description(ProjectType::Backend);
-        assert!(
-            desc.contains("Backend"),
-            "Expected 'Backend' in: {}",
-            desc
-        );
+        assert!(desc.contains("Backend"), "Expected 'Backend' in: {}", desc);
     }
 
     #[test]
@@ -854,11 +834,7 @@ mod tests {
     #[test]
     fn test_description_unknown() {
         let desc = get_project_type_description(ProjectType::Unknown);
-        assert!(
-            desc.contains("Unknown"),
-            "Expected 'Unknown' in: {}",
-            desc
-        );
+        assert!(desc.contains("Unknown"), "Expected 'Unknown' in: {}", desc);
     }
 
     // ---------------------------------------------------------------
@@ -894,11 +870,7 @@ mod tests {
     #[test]
     fn test_monorepo_null_no_workspaces() {
         let tmp = tempfile::tempdir().unwrap();
-        std::fs::write(
-            tmp.path().join("package.json"),
-            r#"{"name":"no-ws"}"#,
-        )
-        .unwrap();
+        std::fs::write(tmp.path().join("package.json"), r#"{"name":"no-ws"}"#).unwrap();
         assert!(detect_monorepo(tmp.path()).is_none());
     }
 
@@ -908,11 +880,7 @@ mod tests {
         // Create actual package directories.
         let pkg_a = tmp.path().join("packages").join("a");
         std::fs::create_dir_all(&pkg_a).unwrap();
-        std::fs::write(
-            pkg_a.join("package.json"),
-            r#"{"name":"pkg-a"}"#,
-        )
-        .unwrap();
+        std::fs::write(pkg_a.join("package.json"), r#"{"name":"pkg-a"}"#).unwrap();
 
         std::fs::write(
             tmp.path().join("pnpm-workspace.yaml"),
@@ -932,11 +900,7 @@ mod tests {
         let tmp = tempfile::tempdir().unwrap();
         let pkg_a = tmp.path().join("packages").join("a");
         std::fs::create_dir_all(&pkg_a).unwrap();
-        std::fs::write(
-            pkg_a.join("package.json"),
-            r#"{"name":"npm-a"}"#,
-        )
-        .unwrap();
+        std::fs::write(pkg_a.join("package.json"), r#"{"name":"npm-a"}"#).unwrap();
 
         std::fs::write(
             tmp.path().join("package.json"),

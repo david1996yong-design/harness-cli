@@ -68,10 +68,7 @@ pub fn collect_templates() -> HashMap<String, String> {
     }
 
     for hook in tmpl::get_all_hooks() {
-        files.insert(
-            format!(".github/copilot/hooks/{}", hook.name),
-            hook.content,
-        );
+        files.insert(format!(".github/copilot/hooks/{}", hook.name), hook.content);
     }
 
     let resolved_config = resolve_placeholders(&tmpl::get_hooks_config());

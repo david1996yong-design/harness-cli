@@ -96,11 +96,7 @@ enum SafeDeleteAction {
 
 fn get_protected_paths() -> Vec<String> {
     vec![
-        format!(
-            "{}/{}",
-            dir_names::WORKFLOW,
-            dir_names::WORKSPACE
-        ),
+        format!("{}/{}", dir_names::WORKFLOW, dir_names::WORKSPACE),
         format!("{}/{}", dir_names::WORKFLOW, dir_names::TASKS),
         format!("{}/{}", dir_names::WORKFLOW, dir_names::SPEC),
         format!("{}/.developer", dir_names::WORKFLOW),
@@ -110,10 +106,9 @@ fn get_protected_paths() -> Vec<String> {
 
 fn is_protected_path(file_path: &str) -> bool {
     let protected = get_protected_paths();
-    protected.iter().any(|pp| {
-        file_path == pp
-            || file_path.starts_with(&format!("{}/", pp))
-    })
+    protected
+        .iter()
+        .any(|pp| file_path == pp || file_path.starts_with(&format!("{}/", pp)))
 }
 
 // =============================================================================
@@ -165,7 +160,11 @@ fn collect_safe_file_deletes(
         }
 
         if item.allowed_hashes.is_none()
-            || item.allowed_hashes.as_ref().map(|h| h.is_empty()).unwrap_or(true)
+            || item
+                .allowed_hashes
+                .as_ref()
+                .map(|h| h.is_empty())
+                .unwrap_or(true)
         {
             results.push(SafeFileDeleteClassified {
                 item: item.clone(),
@@ -177,12 +176,7 @@ fn collect_safe_file_deletes(
         match std::fs::read_to_string(&full_path) {
             Ok(content) => {
                 let file_hash = compute_hash(&content);
-                if item
-                    .allowed_hashes
-                    .as_ref()
-                    .unwrap()
-                    .contains(&file_hash)
-                {
+                if item.allowed_hashes.as_ref().unwrap().contains(&file_hash) {
                     results.push(SafeFileDeleteClassified {
                         item: item.clone(),
                         action: SafeDeleteAction::Delete,
@@ -233,10 +227,7 @@ fn print_safe_file_delete_summary(classified: &[SafeFileDeleteClassified]) {
             .as_ref()
             .map(|d| format!(" ({})", d))
             .unwrap_or_default();
-        println!(
-            "{}",
-            format!("    x {}{}", c.item.from, desc).green()
-        );
+        println!("{}", format!("    x {}{}", c.item.from, desc).green());
     }
 
     for c in &modified {
@@ -268,7 +259,10 @@ fn execute_safe_file_deletes(classified: &[SafeFileDeleteClassified], cwd: &Path
         let full_path = cwd.join(&c.item.from);
         if std::fs::remove_file(&full_path).is_ok() {
             remove_hash(cwd, &c.item.from);
-            cleanup_empty_dirs(cwd, Path::new(&c.item.from).parent().unwrap_or(Path::new("")));
+            cleanup_empty_dirs(
+                cwd,
+                Path::new(&c.item.from).parent().unwrap_or(Path::new("")),
+            );
             deleted += 1;
         }
     }
@@ -360,15 +354,9 @@ fn collect_template_files(cwd: &Path) -> HashMap<String, String> {
         if let Some(content) = get_embedded_file::<HarnessCliTemplates>(&file_path) {
             // Scripts go under .harness-cli/scripts/
             if file_path.ends_with(".py") || file_path.ends_with(".sh") {
-                files.insert(
-                    format!("{}/{}", constructed::SCRIPTS, file_path),
-                    content,
-                );
+                files.insert(format!("{}/{}", constructed::SCRIPTS, file_path), content);
             } else {
-                files.insert(
-                    format!("{}/{}", dir_names::WORKFLOW, file_path),
-                    content,
-                );
+                files.insert(format!("{}/{}", dir_names::WORKFLOW, file_path), content);
             }
         }
     }
@@ -392,10 +380,7 @@ fn collect_template_files(cwd: &Path) -> HashMap<String, String> {
             .filter(|file_path| {
                 skip_paths.iter().any(|skip| {
                     *file_path == skip
-                        || file_path.starts_with(&format!(
-                            "{}/",
-                            skip.trim_end_matches('/')
-                        ))
+                        || file_path.starts_with(&format!("{}/", skip.trim_end_matches('/')))
                 })
             })
             .cloned()
@@ -502,34 +487,21 @@ fn print_change_summary(changes: &ChangeAnalysis) {
     if !changes.unchanged_files.is_empty() {
         println!("{}", "  Unchanged files (will skip):".dimmed());
         for file in changes.unchanged_files.iter().take(5) {
-            println!(
-                "{}",
-                format!("    o {}", file.relative_path).dimmed()
-            );
+            println!("{}", format!("    o {}", file.relative_path).dimmed());
         }
         if changes.unchanged_files.len() > 5 {
             println!(
                 "{}",
-                format!(
-                    "    ... and {} more",
-                    changes.unchanged_files.len() - 5
-                )
-                .dimmed()
+                format!("    ... and {} more", changes.unchanged_files.len() - 5).dimmed()
             );
         }
         println!();
     }
 
     if !changes.changed_files.is_empty() {
-        println!(
-            "{}",
-            "  Modified by you (need your decision):".yellow()
-        );
+        println!("{}", "  Modified by you (need your decision):".yellow());
         for file in &changes.changed_files {
-            println!(
-                "{}",
-                format!("    ? {}", file.relative_path).yellow()
-            );
+            println!("{}", format!("    ? {}", file.relative_path).yellow());
         }
         println!();
     }
@@ -537,10 +509,7 @@ fn print_change_summary(changes: &ChangeAnalysis) {
     if !changes.user_deleted_files.is_empty() {
         println!("{}", "  Deleted by you (preserved):".dimmed());
         for file in &changes.user_deleted_files {
-            println!(
-                "{}",
-                format!("    x {}", file.relative_path).dimmed()
-            );
+            println!("{}", format!("    x {}", file.relative_path).dimmed());
         }
         println!();
     }
@@ -899,8 +868,7 @@ fn is_directory_safe_to_replace(
             }
         }
 
-        if hashes.contains_key(&relative_path)
-            && !is_template_modified(cwd, &relative_path, hashes)
+        if hashes.contains_key(&relative_path) && !is_template_modified(cwd, &relative_path, hashes)
         {
             continue;
         }
@@ -978,12 +946,8 @@ fn print_migration_summary(classified: &ClassifiedMigrations) {
                 MigrationType::Rename => {
                     println!(
                         "{}",
-                        format!(
-                            "    {} -> {}",
-                            item.from,
-                            item.to.as_deref().unwrap_or("?")
-                        )
-                        .green()
+                        format!("    {} -> {}", item.from, item.to.as_deref().unwrap_or("?"))
+                            .green()
                     );
                 }
                 MigrationType::RenameDir => {
@@ -998,10 +962,7 @@ fn print_migration_summary(classified: &ClassifiedMigrations) {
                     );
                 }
                 _ => {
-                    println!(
-                        "{}",
-                        format!("    x {}", item.from).green()
-                    );
+                    println!("{}", format!("    x {}", item.from).green());
                 }
             }
         }
@@ -1018,19 +979,12 @@ fn print_migration_summary(classified: &ClassifiedMigrations) {
                 MigrationType::Rename => {
                     println!(
                         "{}",
-                        format!(
-                            "    {} -> {}",
-                            item.from,
-                            item.to.as_deref().unwrap_or("?")
-                        )
-                        .yellow()
+                        format!("    {} -> {}", item.from, item.to.as_deref().unwrap_or("?"))
+                            .yellow()
                     );
                 }
                 _ => {
-                    println!(
-                        "{}",
-                        format!("    x {}", item.from).yellow()
-                    );
+                    println!("{}", format!("    x {}", item.from).yellow());
                 }
             }
         }
@@ -1038,10 +992,7 @@ fn print_migration_summary(classified: &ClassifiedMigrations) {
     }
 
     if !classified.conflict.is_empty() {
-        println!(
-            "{}",
-            "  Conflict (both old and new exist):".red()
-        );
+        println!("{}", "  Conflict (both old and new exist):".red());
         for item in &classified.conflict {
             match item.type_ {
                 MigrationType::RenameDir => {
@@ -1202,11 +1153,8 @@ fn execute_migrations(
                         let mut updated_hashes: TemplateHashes = HashMap::new();
                         for (hash_path, hash_value) in &hashes {
                             if hash_path.starts_with(&old_prefix) {
-                                let new_hash_path = format!(
-                                    "{}{}",
-                                    new_prefix,
-                                    &hash_path[old_prefix.len()..]
-                                );
+                                let new_hash_path =
+                                    format!("{}{}", new_prefix, &hash_path[old_prefix.len()..]);
                                 updated_hashes.insert(new_hash_path, hash_value.clone());
                             } else if hash_path.starts_with(&new_prefix) {
                                 continue; // Skip old hashes from deleted target
@@ -1389,11 +1337,7 @@ pub fn update(options: UpdateOptions) -> Result<()> {
         if let Some(ref npm_ver) = latest_npm_version {
             println!(
                 "{}",
-                format!(
-                    "  Your CLI ({}) is behind npm ({}).",
-                    cli_version, npm_ver
-                )
-                .yellow()
+                format!("  Your CLI ({}) is behind npm ({}).", cli_version, npm_ver).yellow()
             );
             println!(
                 "{}",
@@ -1412,10 +1356,7 @@ pub fn update(options: UpdateOptions) -> Result<()> {
             )
             .red()
         );
-        println!(
-            "{}",
-            "   This would DOWNGRADE your project!\n".red()
-        );
+        println!("{}", "   This would DOWNGRADE your project!\n".red());
 
         if !options.allow_downgrade {
             println!("{}", "Solutions:".dimmed());
@@ -1445,13 +1386,9 @@ pub fn update(options: UpdateOptions) -> Result<()> {
     if is_unknown_version {
         println!(
             "{}",
-            "  No version file found. Skipping migrations -- run harness-cli init to fix."
-                .yellow()
+            "  No version file found. Skipping migrations -- run harness-cli init to fix.".yellow()
         );
-        println!(
-            "{}",
-            "   Template updates will still be applied.".dimmed()
-        );
+        println!("{}", "   Template updates will still be applied.".dimmed());
         println!(
             "{}",
             "   Safe file cleanup will still run (hash-verified).\n".dimmed()
@@ -1521,12 +1458,7 @@ pub fn update(options: UpdateOptions) -> Result<()> {
         for item in &orphaned_migrations {
             println!(
                 "{}",
-                format!(
-                    "    {} -> {}",
-                    item.from,
-                    item.to.as_deref().unwrap_or("?")
-                )
-                .yellow()
+                format!("    {} -> {}", item.from, item.to.as_deref().unwrap_or("?")).yellow()
             );
         }
         println!();
@@ -1637,7 +1569,11 @@ pub fn update(options: UpdateOptions) -> Result<()> {
     if is_upgrade {
         println!(
             "{}",
-            format!("This will UPGRADE: {} -> {}\n", project_version, cli_version).green()
+            format!(
+                "This will UPGRADE: {} -> {}\n",
+                project_version, cli_version
+            )
+            .green()
         );
     } else if is_downgrade {
         println!(
@@ -1669,7 +1605,9 @@ pub fn update(options: UpdateOptions) -> Result<()> {
                 println!(
                     "{}{}",
                     " RECOMMENDED ".on_green().black().bold(),
-                    " Run with --migrate to complete the migration".green().bold()
+                    " Run with --migrate to complete the migration"
+                        .green()
+                        .bold()
                 );
             }
             println!("{}", "=".repeat(60).cyan());
@@ -1708,12 +1646,8 @@ pub fn update(options: UpdateOptions) -> Result<()> {
     // Execute migrations if --migrate flag is set
     if options.migrate {
         if let Some(ref classified) = classified_migrations {
-            let migration_result = execute_migrations(
-                classified,
-                &cwd,
-                options.force,
-                options.skip_all,
-            );
+            let migration_result =
+                execute_migrations(classified, &cwd, options.force, options.skip_all);
             print_migration_result(&migration_result);
 
             // Hardcoded: Rename traces-*.md to journal-*.md in workspace directories
@@ -1971,7 +1905,9 @@ pub fn update(options: UpdateOptions) -> Result<()> {
                 println!(
                     "{}{}",
                     " RECOMMENDED ".on_green().black().bold(),
-                    " Run with --migrate to complete the migration".green().bold()
+                    " Run with --migrate to complete the migration"
+                        .green()
+                        .bold()
                 );
                 println!(
                     "{}",

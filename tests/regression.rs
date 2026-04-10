@@ -10,11 +10,15 @@ use std::collections::{HashMap, HashSet};
 use harness_cli::configurators;
 use harness_cli::configurators::shared::resolve_placeholders;
 use harness_cli::configurators::workflow::{create_workflow_structure, WorkflowOptions};
-use harness_cli::constants::paths::{constructed, dir_names, get_archive_dir, get_task_dir, get_workspace_dir};
+use harness_cli::constants::paths::{
+    constructed, dir_names, get_archive_dir, get_task_dir, get_workspace_dir,
+};
 use harness_cli::constants::version::VERSION;
 use harness_cli::migrations;
-use harness_cli::templates::{claude, codex, copilot, harness_cli as hc_templates, iflow, markdown};
 use harness_cli::templates::extract::{list_files, HarnessCliTemplates};
+use harness_cli::templates::{
+    claude, codex, copilot, harness_cli as hc_templates, iflow, markdown,
+};
 use harness_cli::types::ai_tools::{get_managed_paths, get_tool_config, AITool};
 use harness_cli::types::migration::MigrationType;
 use harness_cli::utils::compare_versions::compare_versions;
@@ -158,7 +162,10 @@ fn test_no_sh_scripts_in_templates() {
 #[test]
 fn test_all_script_keys_end_with_py() {
     let scripts = hc_templates::get_all_scripts();
-    assert!(!scripts.is_empty(), "get_all_scripts should return at least one script");
+    assert!(
+        !scripts.is_empty(),
+        "get_all_scripts should return at least one script"
+    );
     for (key, _) in &scripts {
         assert!(
             key.ends_with(".py"),
@@ -221,7 +228,10 @@ fn test_get_all_scripts_covers_all_py_files() {
 #[test]
 fn test_claude_settings_valid_json() {
     let settings = claude::get_settings_template();
-    assert!(!settings.content.is_empty(), "Claude settings.json should not be empty");
+    assert!(
+        !settings.content.is_empty(),
+        "Claude settings.json should not be empty"
+    );
     let parsed: Result<serde_json::Value, _> = serde_json::from_str(&settings.content);
     assert!(
         parsed.is_ok(),
@@ -233,8 +243,8 @@ fn test_claude_settings_valid_json() {
 #[test]
 fn test_claude_settings_has_hooks() {
     let settings = claude::get_settings_template();
-    let parsed: serde_json::Value = serde_json::from_str(&settings.content)
-        .expect("settings.json should be valid JSON");
+    let parsed: serde_json::Value =
+        serde_json::from_str(&settings.content).expect("settings.json should be valid JSON");
     assert!(
         parsed.get("hooks").is_some(),
         "Claude settings.json should have a 'hooks' key"
@@ -253,7 +263,10 @@ fn test_claude_hooks_use_python_cmd_placeholder() {
 #[test]
 fn test_iflow_settings_valid_json() {
     let settings = iflow::get_settings_template();
-    assert!(!settings.content.is_empty(), "iFlow settings.json should not be empty");
+    assert!(
+        !settings.content.is_empty(),
+        "iFlow settings.json should not be empty"
+    );
     let parsed: Result<serde_json::Value, _> = serde_json::from_str(&settings.content);
     assert!(
         parsed.is_ok(),
@@ -349,8 +362,7 @@ fn test_safe_file_delete_have_hashes() {
         .collect();
     for item in &safe_deletes {
         assert!(
-            item.allowed_hashes.is_some()
-                && !item.allowed_hashes.as_ref().unwrap().is_empty(),
+            item.allowed_hashes.is_some() && !item.allowed_hashes.as_ref().unwrap().is_empty(),
             "SafeFileDelete for '{}' should have allowed_hashes",
             item.from
         );
@@ -399,7 +411,10 @@ fn test_all_manifest_versions_valid() {
 fn test_claude_collect_templates_paths() {
     let templates = configurators::collect_platform_templates(AITool::ClaudeCode)
         .expect("Claude should support template collection");
-    assert!(!templates.is_empty(), "Claude templates should not be empty");
+    assert!(
+        !templates.is_empty(),
+        "Claude templates should not be empty"
+    );
     for path in templates.keys() {
         assert!(
             path.starts_with(".claude/"),
@@ -576,7 +591,8 @@ fn test_markdown_templates_all_non_empty() {
 #[test]
 fn test_tasks_path_correct() {
     assert_eq!(
-        constructed::TASKS, ".harness-cli/tasks",
+        constructed::TASKS,
+        ".harness-cli/tasks",
         "Tasks path should be '.harness-cli/tasks'"
     );
 }
@@ -584,7 +600,8 @@ fn test_tasks_path_correct() {
 #[test]
 fn test_workspace_path_correct() {
     assert_eq!(
-        constructed::WORKSPACE, ".harness-cli/workspace",
+        constructed::WORKSPACE,
+        ".harness-cli/workspace",
         "Workspace path should be '.harness-cli/workspace'"
     );
 }
@@ -592,7 +609,8 @@ fn test_workspace_path_correct() {
 #[test]
 fn test_developer_file_correct() {
     assert_eq!(
-        constructed::DEVELOPER_FILE, ".harness-cli/.developer",
+        constructed::DEVELOPER_FILE,
+        ".harness-cli/.developer",
         "Developer file path should be '.harness-cli/.developer'"
     );
 }
@@ -611,7 +629,10 @@ fn test_resolve_placeholders_replaces_python_cmd() {
     );
     // On Unix: python3, on Windows: python
     if cfg!(windows) {
-        assert!(output.contains("python"), "Should contain 'python' on Windows");
+        assert!(
+            output.contains("python"),
+            "Should contain 'python' on Windows"
+        );
     } else {
         assert!(
             output.contains("python3"),
@@ -624,7 +645,10 @@ fn test_resolve_placeholders_replaces_python_cmd() {
 fn test_resolve_placeholders_preserves_other_content() {
     let input = "keep this text intact";
     let output = resolve_placeholders(input);
-    assert_eq!(output, input, "Content without placeholders should be preserved");
+    assert_eq!(
+        output, input,
+        "Content without placeholders should be preserved"
+    );
 }
 
 #[test]
@@ -701,7 +725,10 @@ fn test_init_creates_directory_structure() {
     };
     create_workflow_structure(cwd, &options).unwrap();
 
-    assert!(cwd.join(".harness-cli").is_dir(), ".harness-cli/ should exist");
+    assert!(
+        cwd.join(".harness-cli").is_dir(),
+        ".harness-cli/ should exist"
+    );
     assert!(
         cwd.join(".harness-cli/scripts").is_dir(),
         "scripts/ should exist"
@@ -714,10 +741,7 @@ fn test_init_creates_directory_structure() {
         cwd.join(".harness-cli/tasks").is_dir(),
         "tasks/ should exist"
     );
-    assert!(
-        cwd.join(".harness-cli/spec").is_dir(),
-        "spec/ should exist"
-    );
+    assert!(cwd.join(".harness-cli/spec").is_dir(), "spec/ should exist");
     assert!(
         cwd.join(".harness-cli/spec/backend").is_dir(),
         "spec/backend/ should exist for Fullstack"
@@ -947,7 +971,10 @@ fn test_force_mode_overwrites() {
 
     assert!(result, "Force mode should report file was written");
     let content = std::fs::read_to_string(&file).unwrap();
-    assert_eq!(content, "new content", "File should be overwritten in force mode");
+    assert_eq!(
+        content, "new content",
+        "File should be overwritten in force mode"
+    );
 }
 
 #[test]
@@ -973,10 +1000,7 @@ fn test_skip_mode_preserves() {
 
 #[test]
 fn test_version_constant_is_valid_semver() {
-    assert!(
-        !VERSION.is_empty(),
-        "VERSION constant should not be empty"
-    );
+    assert!(!VERSION.is_empty(), "VERSION constant should not be empty");
     // Basic semver: should have at least two dots for x.y.z
     let base = VERSION.split('-').next().unwrap();
     let parts: Vec<&str> = base.split('.').collect();
@@ -1032,10 +1056,7 @@ fn test_hash_tracking_after_init() {
 
     // Load and verify
     let hashes = load_hashes(cwd);
-    assert!(
-        !hashes.is_empty(),
-        "Loaded hashes should not be empty"
-    );
+    assert!(!hashes.is_empty(), "Loaded hashes should not be empty");
 }
 
 #[test]
@@ -1187,10 +1208,7 @@ fn test_compare_versions_beta_before_rc() {
 
 #[test]
 fn test_compare_versions_rc_before_release() {
-    assert_eq!(
-        compare_versions("0.3.0-rc.0", "0.3.0"),
-        Ordering::Less
-    );
+    assert_eq!(compare_versions("0.3.0-rc.0", "0.3.0"), Ordering::Less);
 }
 
 // =========================================================================
@@ -1199,10 +1217,7 @@ fn test_compare_versions_rc_before_release() {
 
 #[test]
 fn test_get_workspace_dir() {
-    assert_eq!(
-        get_workspace_dir("alice"),
-        ".harness-cli/workspace/alice"
-    );
+    assert_eq!(get_workspace_dir("alice"), ".harness-cli/workspace/alice");
 }
 
 #[test]
@@ -1320,10 +1335,7 @@ fn test_resolve_cli_flag() {
         configurators::resolve_cli_flag("cursor"),
         Some(AITool::Cursor)
     );
-    assert_eq!(
-        configurators::resolve_cli_flag("nonexistent"),
-        None
-    );
+    assert_eq!(configurators::resolve_cli_flag("nonexistent"), None);
 }
 
 #[test]
@@ -1484,10 +1496,7 @@ fn test_copilot_has_prompts() {
 #[test]
 fn test_copilot_has_hooks() {
     let hooks = copilot::get_all_hooks();
-    assert!(
-        !hooks.is_empty(),
-        "Copilot should have at least one hook"
-    );
+    assert!(!hooks.is_empty(), "Copilot should have at least one hook");
 }
 
 #[test]
@@ -1518,10 +1527,7 @@ fn test_codex_has_agents() {
 #[test]
 fn test_codex_has_hooks() {
     let hooks = codex::get_all_hooks();
-    assert!(
-        !hooks.is_empty(),
-        "Codex should have at least one hook"
-    );
+    assert!(!hooks.is_empty(), "Codex should have at least one hook");
 }
 
 #[test]
@@ -1618,7 +1624,10 @@ fn test_iflow_has_hooks() {
 #[test]
 fn test_workflow_md_template_not_empty() {
     let content = hc_templates::workflow_md_template();
-    assert!(!content.is_empty(), "workflow.md template should not be empty");
+    assert!(
+        !content.is_empty(),
+        "workflow.md template should not be empty"
+    );
 }
 
 #[test]
@@ -1809,10 +1818,7 @@ fn test_all_platforms_except_opencode_have_templates() {
     for tool in AITool::all() {
         let result = configurators::collect_platform_templates(*tool);
         if *tool == AITool::OpenCode {
-            assert!(
-                result.is_none(),
-                "OpenCode should return None"
-            );
+            assert!(result.is_none(), "OpenCode should return None");
         } else {
             assert!(
                 result.is_some(),

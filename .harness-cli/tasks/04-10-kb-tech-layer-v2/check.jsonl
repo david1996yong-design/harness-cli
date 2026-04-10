@@ -1,0 +1,5 @@
+{"file": ".claude/commands/hc/finish-work.md", "reason": "Finish work checklist"}
+{"file": ".claude/commands/hc/check.md", "reason": "Code quality check spec"}
+{"file": "src/commands/scan.rs", "reason": "验证：kb/tech 脚手架正确创建"}
+{"file": "src/templates/markdown.rs", "reason": "验证：tech 模板访问器存在"}
+{"file": "src/constants/paths.rs", "reason": "验证：KB_TECH 常量存在"}
