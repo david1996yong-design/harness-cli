@@ -9,6 +9,7 @@ Provides:
     cmd_set_branch     - Set git branch for task
     cmd_set_base_branch - Set PR target branch
     cmd_set_scope      - Set scope for PR title
+    cmd_set_priority   - Set task priority
     cmd_add_subtask    - Link child task to parent
     cmd_remove_subtask - Unlink child task from parent
 """
@@ -531,4 +532,42 @@ def cmd_set_scope(args: argparse.Namespace) -> int:
     write_json(task_json, data)
 
     print(colored(f"✓ Scope set to: {scope}", Colors.GREEN))
+    return 0
+
+
+# =============================================================================
+# Command: set-priority
+# =============================================================================
+
+VALID_PRIORITIES = ("P0", "P1", "P2", "P3")
+
+
+def cmd_set_priority(args: argparse.Namespace) -> int:
+    """Set priority for task."""
+    repo_root = get_repo_root()
+    target_dir = resolve_task_dir(args.dir, repo_root)
+    priority = args.priority
+
+    if not priority:
+        print(colored("Error: Missing arguments", Colors.RED))
+        print("Usage: python3 task.py set-priority <task-dir> <P0|P1|P2|P3>")
+        return 1
+
+    if priority not in VALID_PRIORITIES:
+        print(colored(f"Error: Invalid priority '{priority}'. Must be one of: {', '.join(VALID_PRIORITIES)}", Colors.RED))
+        return 1
+
+    task_json = target_dir / FILE_TASK_JSON
+    if not task_json.is_file():
+        print(colored(f"Error: task.json not found at {target_dir}", Colors.RED))
+        return 1
+
+    data = read_json(task_json)
+    if not data:
+        return 1
+
+    data["priority"] = priority
+    write_json(task_json, data)
+
+    print(colored(f"✓ Priority set to: {priority}", Colors.GREEN))
     return 0

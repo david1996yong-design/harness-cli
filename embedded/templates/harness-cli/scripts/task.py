@@ -14,6 +14,7 @@ Usage:
     python3 task.py set-branch <dir> <branch>   # Set git branch
     python3 task.py set-base-branch <dir> <branch>  # Set PR target branch
     python3 task.py set-scope <dir> <scope>     # Set scope for PR title
+    python3 task.py set-priority <dir> <P0|P1|P2|P3>  # Set task priority
     python3 task.py create-pr [dir] [--dry-run] # Create PR from task
     python3 task.py archive <task-name>         # Archive completed task
     python3 task.py list [--detail]             # List active tasks
@@ -52,6 +53,7 @@ from common.task_store import (
     cmd_set_branch,
     cmd_set_base_branch,
     cmd_set_scope,
+    cmd_set_priority,
     cmd_add_subtask,
     cmd_remove_subtask,
 )
@@ -430,6 +432,7 @@ Usage:
   python3 task.py finish                             Clear current task
   python3 task.py set-branch <dir> <branch>          Set git branch for multi-agent
   python3 task.py set-scope <dir> <scope>            Set scope for PR title
+  python3 task.py set-priority <dir> <P0|P1|P2|P3>  Set task priority
   python3 task.py create-pr [dir] [--dry-run]        Create PR from task
   python3 task.py archive <task-name>                Archive completed task
   python3 task.py add-subtask <parent> <child>       Link child task to parent
@@ -544,6 +547,11 @@ def main() -> int:
     p_scope.add_argument("dir", help="Task directory")
     p_scope.add_argument("scope", help="Scope name")
 
+    # set-priority
+    p_priority = subparsers.add_parser("set-priority", help="Set task priority")
+    p_priority.add_argument("dir", help="Task directory")
+    p_priority.add_argument("priority", help="Priority (P0|P1|P2|P3)")
+
     # create-pr
     p_pr = subparsers.add_parser("create-pr", help="Create PR")
     p_pr.add_argument("dir", nargs="?", help="Task directory")
@@ -596,6 +604,7 @@ def main() -> int:
         "set-branch": cmd_set_branch,
         "set-base-branch": cmd_set_base_branch,
         "set-scope": cmd_set_scope,
+        "set-priority": cmd_set_priority,
         "create-pr": cmd_create_pr,
         "archive": cmd_archive,
         "add-subtask": cmd_add_subtask,
