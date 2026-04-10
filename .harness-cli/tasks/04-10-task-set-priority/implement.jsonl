@@ -1,0 +1,3 @@
+{"file": ".harness-cli/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".harness-cli/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".harness-cli/scripts/task.py", "reason": "主改动文件：参考 set-branch/set-scope 实现 set-priority"}

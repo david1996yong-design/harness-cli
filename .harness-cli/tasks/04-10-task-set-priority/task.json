@@ -1,0 +1,47 @@
+{
+  "id": "task-set-priority",
+  "name": "task-set-priority",
+  "title": "task.py 新增 set-priority 子命令",
+  "description": "",
+  "status": "planning",
+  "dev_type": "backend",
+  "scope": "task-set-priority",
+  "package": null,
+  "priority": "P2",
+  "creator": "david1996yong",
+  "assignee": "david1996yong",
+  "createdAt": "2026-04-10",
+  "completedAt": null,
+  "branch": "feature/task-set-priority",
+  "base_branch": "master",
+  "worktree_path": "/home/zy/harness-cli-worktrees/feature/task-set-priority",
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "implement"
+    },
+    {
+      "phase": 2,
+      "action": "check"
+    },
+    {
+      "phase": 3,
+      "action": "finish"
+    },
+    {
+      "phase": 4,
+      "action": "direct-merge"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {},
+  "merge_mode": "direct",
+  "merge_target": "master"
+}
