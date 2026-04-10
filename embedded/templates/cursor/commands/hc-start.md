@@ -2,6 +2,16 @@
 
 Initialize your AI development session and begin working on tasks.
 
+## Workflow Modes
+
+This command supports three workflow modes:
+
+| Mode | Trigger | Purpose |
+|------|---------|---------|
+| **Dev** (default) | `/hc-start` or `/hc-start dev` | Build features, handle development tasks |
+| **Debug** | `/hc-start debug [description]` | Structured bug diagnosis and fix |
+| **Arch** | `/hc-start arch [module]` | Architecture review and optimization |
+
 ---
 
 ## Operation Types
@@ -55,7 +65,24 @@ cat .harness-cli/spec/guides/index.md              # Thinking guides (always rea
 > At this step, just read the indexes to understand what's available.
 > When you start actual development, you MUST go back and read the specific guideline files relevant to your task, as listed in the index's Pre-Development Checklist.
 
-### Step 4: Check Active Tasks `[AI]`
+### Step 4: Mode Routing
+
+Parse the user's command arguments to determine the workflow mode:
+
+| User Input | Mode | Action |
+|------------|------|--------|
+| `/hc-start` | Dev | Proceed to **Step 5** |
+| `/hc-start dev` | Dev | Proceed to **Step 5** |
+| `/hc-start debug` | Debug | Jump to **Debug Mode** section |
+| `/hc-start debug "error message"` | Debug | Jump to **Debug Mode** with initial description |
+| `/hc-start arch` | Arch | Jump to **Arch Mode** (full project scan) |
+| `/hc-start arch <module>` | Arch | Jump to **Arch Mode** (scoped to module) |
+
+If the user provided arguments after the command name, extract them:
+- **First word** after `/hc-start` → mode selector (`debug`, `arch`, or anything else = dev)
+- **Remaining text** → mode-specific argument (problem description for debug, module name for arch)
+
+### Step 5: Check Active Tasks `[AI]`
 
 ```bash
 python3 ./.harness-cli/scripts/task.py list
@@ -63,7 +90,7 @@ python3 ./.harness-cli/scripts/task.py list
 
 If continuing previous work, review the task file.
 
-### Step 5: Report Ready Status and Ask for Tasks
+### Step 6: Report Ready Status and Ask for Tasks
 
 Output a summary:
 
@@ -83,7 +110,7 @@ Ready for your task. What would you like to work on?
 
 ---
 
-## Task Classification
+## Task Classification (Dev Mode)
 
 When user describes a task, classify it:
 
@@ -322,7 +349,9 @@ The following slash commands are for users (not AI):
 
 | Command | Description |
 |---------|-------------|
-| `/hc-start` | Start development session (this command) |
+| `/hc-start` | Start dev session (default mode) |
+| `/hc-start debug [desc]` | Start debug diagnosis session |
+| `/hc-start arch [module]` | Start architecture review session |
 | `/hc-brainstorm` | Clarify vague requirements before implementation |
 | `/hc-before-dev` | Read development guidelines |
 | `/hc-check` | Check code quality |
@@ -363,6 +392,129 @@ Or prefix commands:
 ```bash
 HARNESS_CLI_PLATFORM=cursor python3 ./.harness-cli/scripts/task.py list
 ```
+
+---
+
+## Debug Mode (Structured Diagnosis)
+
+A 7-step structured process for bug diagnosis and resolution. Entered via `/hc-start debug [description]`.
+
+### Debug Step 1: Collect Information `[AI]`
+
+Gather diagnostic information from the user **one question at a time**. Do NOT ask multiple questions at once.
+
+**Information to collect (in order):**
+
+1. **Symptom description** — What is happening? What was expected?
+2. **Error logs** — Ask for relevant error messages or stack traces
+3. **Reproduction steps** — How to trigger the issue
+4. **Environment info** — OS, version, configuration, recent changes
+
+> **Shortcut**: If user provided a description with `/hc-start debug "..."`, use it as the symptom description and skip to the next missing piece.
+
+After each answer, summarize what you know so far before asking the next question.
+
+### Debug Step 2: Create Debug Task `[AI]`
+
+Once you have enough context (at minimum: symptom + error log or reproduction steps):
+
+```bash
+TASK_DIR=$(python3 ./.harness-cli/scripts/task.py create "debug: <short description>" --slug debug-<name>)
+```
+
+Write a `prd.md` in the task directory:
+
+```markdown
+# Debug: <Short Description>
+
+## Symptom
+<What is happening>
+
+## Expected Behavior
+<What should happen>
+
+## Error Logs
+<Paste error logs>
+
+## Reproduction Steps
+<Steps to reproduce>
+
+## Environment
+<OS, version, config>
+```
+
+Activate the task:
+
+```bash
+python3 ./.harness-cli/scripts/task.py start "$TASK_DIR"
+```
+
+### Debug Step 3: Automatic Scan `[AI]`
+
+Based on the collected information, perform automated investigation:
+
+1. **Keyword search** — Search codebase for keywords from error messages
+2. **Recent changes** — Check git history for relevant recent changes:
+   ```bash
+   git log --oneline -20
+   git log --oneline -10 -- <relevant-files>
+   ```
+3. **Related code** — Read the source files identified from logs and search results
+
+### Debug Step 4: Form Hypotheses `[AI]`
+
+Present 2-3 hypotheses ranked by likelihood. Ask user to confirm direction.
+
+### Debug Step 5: Verify Hypotheses `[AI]`
+
+For each hypothesis: read code, check edge cases, write test to reproduce, report findings.
+
+### Debug Step 6: Implement Fix `[AI]`
+
+Once root cause is confirmed:
+1. Configure context for the fix
+2. Implement the fix following specs
+3. Run quality pass
+
+### Debug Step 7: Knowledge Capture `[AI]`
+
+1. Trigger `/hc-break-loop` analysis
+2. Update specs if needed
+3. Complete the task: `python3 ./.harness-cli/scripts/task.py finish`
+
+---
+
+## Arch Mode (Architecture Review)
+
+A structured architecture review process. Entered via `/hc-start arch [module]`.
+
+### Arch Step 1: Determine Scope `[AI]`
+
+Full project scan or scoped to specified module.
+
+### Arch Step 2: Automatic Scan `[AI]`
+
+Scan across 5 dimensions: Code Structure, Spec Coverage, Code Smells, Consistency, Extensibility.
+
+### Arch Step 3: Generate Report `[AI]`
+
+Present structured report with findings by priority (P0/P1/P2), dimension scores, and positive patterns.
+
+### Arch Step 4: Discussion `[AI]`
+
+Present report and discuss with user.
+
+### Arch Step 5: Optional Task Decomposition `[AI]`
+
+Ask user if they want to create tasks from findings. If yes, create task directories with PRDs.
+
+---
+
+## Mode Switching
+
+- **Dev to Debug**: If bug discovered during dev, offer to switch to debug mode
+- **Debug to Dev**: After fix, resume previous dev session
+- **Arch to Dev**: Arch tasks execute via normal Task Workflow
 
 ---
 

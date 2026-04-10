@@ -1,0 +1,5 @@
+{"file": ".harness-cli/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".harness-cli/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": "embedded/templates/claude/commands/hc/start.md", "reason": "主改动文件：需要增加模式参数解析和 debug/arch 模式流程"}
+{"file": "embedded/templates/claude/commands/hc/brainstorm.md", "reason": "参考：brainstorm 流程结构，debug/arch 模式参考其分步设计"}
+{"file": "embedded/templates/claude/commands/hc/break-loop.md", "reason": "参考：debug 模式第 7 步知识沉淀需要衔接 break-loop"}

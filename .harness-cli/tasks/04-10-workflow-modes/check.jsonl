@@ -1,0 +1,4 @@
+{"file": ".claude/commands/hc/finish-work.md", "reason": "Finish work checklist"}
+{"file": ".claude/commands/hc/check.md", "reason": "Code quality check spec"}
+{"file": "embedded/templates/claude/commands/hc/start.md", "reason": "验证：模式路由逻辑、dev 模式向后兼容、debug/arch 流程完整性"}
+{"file": "embedded/templates/claude/commands/hc/brainstorm.md", "reason": "对比：确保模式流程设计质量不低于 brainstorm"}
