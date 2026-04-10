@@ -30,9 +30,9 @@ pub fn compare_versions(a: &str, b: &str) -> Ordering {
     // Base versions are equal, compare prerelease
     // No prerelease > prerelease (1.0.0 > 1.0.0-beta)
     match (a_prerelease, b_prerelease) {
-        (None, Some(_)) => return Ordering::Greater,
-        (Some(_), None) => return Ordering::Less,
-        (None, None) => return Ordering::Equal,
+        (None, Some(_)) => Ordering::Greater,
+        (Some(_), None) => Ordering::Less,
+        (None, None) => Ordering::Equal,
         (Some(a_pre), Some(b_pre)) => {
             // Both have prerelease, compare them
             let a_parts: Vec<&str> = a_pre.split('.').collect();
