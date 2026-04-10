@@ -16,7 +16,8 @@ Usage:
     python3 task.py set-scope <dir> <scope>     # Set scope for PR title
     python3 task.py create-pr [dir] [--dry-run] # Create PR from task
     python3 task.py archive <task-name>         # Archive completed task
-    python3 task.py list                        # List active tasks
+    python3 task.py list [--detail]             # List active tasks
+    python3 task.py status [--mine] [--json]    # Task status dashboard
     python3 task.py list-archive [month]        # List archived tasks
     python3 task.py add-subtask <parent-dir> <child-dir>     # Link child to parent
     python3 task.py remove-subtask <parent-dir> <child-dir>  # Unlink child from parent
@@ -42,6 +43,7 @@ from common.paths import (
 )
 from common.task_utils import resolve_task_dir, run_task_hooks
 from common.tasks import iter_active_tasks, children_progress
+from common.types import TaskInfo
 
 # Import command handlers from split modules (also re-exports for plan.py compatibility)
 from common.task_store import (
@@ -133,6 +135,7 @@ def cmd_list(args: argparse.Namespace) -> int:
     developer = get_developer(repo_root)
     filter_mine = args.mine
     filter_status = args.status
+    detail = getattr(args, "detail", False)
 
     if filter_mine:
         if not developer:
@@ -175,7 +178,24 @@ def cmd_list(args: argparse.Namespace) -> int:
 
         prefix = "  " * indent + "  - "
 
-        if filter_mine:
+        if detail:
+            # Detail mode: multi-line display per task
+            print(f"{prefix}{colored(dir_name, Colors.CYAN)}/{marker}")
+            detail_prefix = "  " * indent + "    "
+            print(f"{detail_prefix}priority:  {t.priority}")
+            print(f"{detail_prefix}title:     {t.title}")
+            print(f"{detail_prefix}status:    {t.status}")
+            print(f"{detail_prefix}assignee:  {t.assignee or '-'}")
+            if t.branch:
+                print(f"{detail_prefix}branch:    {t.branch}")
+            created_at = t.raw.get("createdAt", "-")
+            print(f"{detail_prefix}created:   {created_at}")
+            if t.package:
+                print(f"{detail_prefix}package:   {t.package}")
+            if t.children:
+                print(f"{detail_prefix}children:  {progress.strip()}")
+            print()
+        elif filter_mine:
             print(f"{prefix}{dir_name}/ ({t.status}){pkg_tag}{progress}{marker}")
         else:
             print(f"{prefix}{dir_name}/ ({t.status}){pkg_tag}{progress} [{colored(t.assignee or '-', Colors.CYAN)}]{marker}")
@@ -199,6 +219,139 @@ def cmd_list(args: argparse.Namespace) -> int:
 
     print()
     print(f"Total: {count} task(s)")
+    return 0
+
+
+# =============================================================================
+# Command: status
+# =============================================================================
+
+def cmd_status(args: argparse.Namespace) -> int:
+    """Task status dashboard."""
+    import json as json_mod
+
+    repo_root = get_repo_root()
+    tasks_dir = get_tasks_dir(repo_root)
+    developer = get_developer(repo_root)
+    filter_mine = getattr(args, "mine", False)
+    output_json = getattr(args, "json", False)
+
+    if filter_mine and not developer:
+        print(colored("Error: No developer set. Run init_developer.py first", Colors.RED), file=sys.stderr)
+        return 1
+
+    # Collect all tasks
+    all_tasks_list = list(iter_active_tasks(tasks_dir))
+
+    # Apply --mine filter
+    if filter_mine:
+        all_tasks_list = [t for t in all_tasks_list if (t.assignee or "-") == developer]
+
+    # Group by status
+    status_order = ["planning", "in_progress", "review", "completed"]
+    grouped: dict[str, list] = {s: [] for s in status_order}
+    other_group: list = []
+
+    for t in all_tasks_list:
+        if t.status in grouped:
+            grouped[t.status].append(t)
+        else:
+            other_group.append(t)
+
+    # Priority stats
+    priority_counts = {"P0": 0, "P1": 0, "P2": 0, "P3": 0}
+    status_counts: dict[str, int] = {}
+    for t in all_tasks_list:
+        if t.priority in priority_counts:
+            priority_counts[t.priority] += 1
+        status_counts[t.status] = status_counts.get(t.status, 0) + 1
+
+    total = len(all_tasks_list)
+
+    # JSON output
+    if output_json:
+        def _task_to_dict(t: TaskInfo) -> dict:
+            return {
+                "dir_name": t.dir_name,
+                "priority": t.priority,
+                "title": t.title,
+                "status": t.status,
+                "assignee": t.assignee or "-",
+                "branch": t.branch,
+                "package": t.package,
+                "createdAt": t.raw.get("createdAt", ""),
+                "children": list(t.children),
+                "parent": t.parent,
+            }
+
+        tasks_list: list[dict] = []
+        by_status: dict[str, list[dict]] = {}
+
+        for status in status_order:
+            by_status[status] = []
+            for t in grouped[status]:
+                task_dict = _task_to_dict(t)
+                by_status[status].append(task_dict)
+                tasks_list.append(task_dict)
+        if other_group:
+            by_status["other"] = []
+            for t in other_group:
+                task_dict = _task_to_dict(t)
+                by_status["other"].append(task_dict)
+                tasks_list.append(task_dict)
+
+        data = {
+            "tasks": tasks_list,
+            "by_status": by_status,
+            "priority_counts": priority_counts,
+            "status_counts": status_counts,
+            "total": total,
+        }
+        print(json_mod.dumps(data, indent=2, ensure_ascii=False))
+        return 0
+
+    # Human-readable output
+    if filter_mine:
+        print(colored(f"Task Status Dashboard (assignee: {developer})", Colors.BLUE))
+    else:
+        print(colored("Task Status Dashboard", Colors.BLUE))
+    print(colored("=" * 60, Colors.DIM))
+    print()
+
+    for status in status_order:
+        tasks_in_group = grouped[status]
+        if not tasks_in_group:
+            continue
+
+        status_label = status.upper().replace("_", " ")
+        print(colored(f"[{status_label}] ({len(tasks_in_group)})", Colors.YELLOW))
+        print(colored("-" * 40, Colors.DIM))
+
+        for t in tasks_in_group:
+            branch_info = f"  branch: {t.branch}" if t.branch else ""
+            print(f"  {colored(t.priority, Colors.RED if t.priority == 'P0' else Colors.NC)} | {t.title}")
+            print(f"       assignee: {t.assignee or '-'}{branch_info}")
+            if t.package:
+                print(f"       package: {t.package}")
+        print()
+
+    # Other statuses
+    if other_group:
+        print(colored(f"[OTHER] ({len(other_group)})", Colors.YELLOW))
+        print(colored("-" * 40, Colors.DIM))
+        for t in other_group:
+            branch_info = f"  branch: {t.branch}" if t.branch else ""
+            print(f"  {t.priority} | {t.title} ({t.status})")
+            print(f"       assignee: {t.assignee or '-'}{branch_info}")
+        print()
+
+    # Summary line
+    print(colored("=" * 60, Colors.DIM))
+    priority_str = "  ".join(f"{k}:{v}" for k, v in priority_counts.items())
+    status_str = "  ".join(f"{k}:{v}" for k, v in status_counts.items())
+    print(f"Total: {total} task(s)  |  Priority: {priority_str}")
+    print(f"Status: {status_str}")
+
     return 0
 
 
@@ -281,7 +434,9 @@ Usage:
   python3 task.py archive <task-name>                Archive completed task
   python3 task.py add-subtask <parent> <child>       Link child task to parent
   python3 task.py remove-subtask <parent> <child>    Unlink child from parent
-  python3 task.py list [--mine] [--status <status>]  List tasks
+  python3 task.py list [--mine] [--status <s>]       List tasks
+  python3 task.py list --detail                      List tasks with detailed info
+  python3 task.py status [--mine] [--json]           Task status dashboard
   python3 task.py list-archive [YYYY-MM]             List archived tasks
 
 Arguments:
@@ -293,6 +448,11 @@ Monorepo options:
 List options:
   --mine, -m           Show only tasks assigned to current developer
   --status, -s <s>     Filter by status (planning, in_progress, review, completed)
+  --detail, -d         Show detailed info per task
+
+Status options:
+  --mine, -m           Show only tasks assigned to current developer
+  --json               Output JSON format (for script consumption)
 
 Examples:
   python3 task.py create "Add login feature" --slug add-login
@@ -310,8 +470,12 @@ Examples:
   python3 task.py add-subtask parent-task child-task  # Link existing tasks
   python3 task.py remove-subtask parent-task child-task
   python3 task.py list                               # List all active tasks
+  python3 task.py list --detail                      # List with detailed info
   python3 task.py list --mine                        # List my tasks only
   python3 task.py list --mine --status in_progress   # List my in-progress tasks
+  python3 task.py status                             # Status dashboard
+  python3 task.py status --mine                      # My tasks dashboard
+  python3 task.py status --json                      # JSON output
 """)
 
 
@@ -394,6 +558,12 @@ def main() -> int:
     p_list = subparsers.add_parser("list", help="List tasks")
     p_list.add_argument("--mine", "-m", action="store_true", help="My tasks only")
     p_list.add_argument("--status", "-s", help="Filter by status")
+    p_list.add_argument("--detail", "-d", action="store_true", help="Show detailed info per task")
+
+    # status
+    p_status = subparsers.add_parser("status", help="Task status dashboard")
+    p_status.add_argument("--mine", "-m", action="store_true", help="My tasks only")
+    p_status.add_argument("--json", action="store_true", help="Output JSON format")
 
     # add-subtask
     p_addsub = subparsers.add_parser("add-subtask", help="Link child task to parent")
@@ -431,6 +601,7 @@ def main() -> int:
         "add-subtask": cmd_add_subtask,
         "remove-subtask": cmd_remove_subtask,
         "list": cmd_list,
+        "status": cmd_status,
         "list-archive": cmd_list_archive,
     }
 

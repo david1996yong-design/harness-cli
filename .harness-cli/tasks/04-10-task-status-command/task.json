@@ -1,0 +1,45 @@
+{
+  "id": "task-status-command",
+  "name": "task-status-command",
+  "title": "brainstorm: 查看所有任务状态的命令",
+  "description": "",
+  "status": "planning",
+  "dev_type": "backend",
+  "scope": "task-system",
+  "package": null,
+  "priority": "P2",
+  "creator": "david1996yong",
+  "assignee": "david1996yong",
+  "createdAt": "2026-04-10",
+  "completedAt": null,
+  "branch": "feature/task-status-command",
+  "base_branch": "master",
+  "worktree_path": "/home/zy/harness-cli-worktrees/feature/task-status-command",
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "implement"
+    },
+    {
+      "phase": 2,
+      "action": "check"
+    },
+    {
+      "phase": 3,
+      "action": "finish"
+    },
+    {
+      "phase": 4,
+      "action": "create-pr"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}
