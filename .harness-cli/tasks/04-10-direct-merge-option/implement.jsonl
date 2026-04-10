@@ -1,0 +1,9 @@
+{"file": ".harness-cli/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".harness-cli/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".harness-cli/scripts/multi_agent/start.py", "reason": "入口脚本，新增 --merge 参数"}
+{"file": ".harness-cli/scripts/multi_agent/create_pr.py", "reason": "参考 commit/push 逻辑，direct_merge.py 复用"}
+{"file": ".harness-cli/scripts/multi_agent/cleanup.py", "reason": "清理脚本，可能需要适配"}
+{"file": ".harness-cli/scripts/common/phase.py", "reason": "阶段管理，理解 action 机制"}
+{"file": ".claude/agents/dispatch.md", "reason": "dispatch agent，新增 direct-merge action"}
+{"file": "embedded/templates/claude/commands/hc/parallel.md", "reason": "编排层 command，新增 --merge 识别"}
+{"file": ".harness-cli/scripts/common/git.py", "reason": "git 操作工具函数"}

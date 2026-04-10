@@ -152,6 +152,23 @@ This will:
 
 **Note**: This is the only action that performs git commit, as it's the final step after all implementation and checks are complete.
 
+### action: "direct-merge"
+
+This action directly merges the feature branch into the target branch without creating a PR. Run it via Bash:
+
+```bash
+python3 ./.harness-cli/scripts/multi_agent/direct_merge.py
+```
+
+This will:
+1. Stage and commit all changes (excluding workspace)
+2. Push feature branch to remote
+3. Merge into target branch (--no-ff) via the main repository
+4. Push target branch and delete remote feature branch
+5. Update task.json with status="completed" and merge_commit
+
+**Note**: This is used when `merge_mode=direct` is set in task.json (via `start.py --merge`). On merge conflict, the script exits with an error and preserves the worktree for manual resolution.
+
 ---
 
 ## Calling Subagents
@@ -208,6 +225,6 @@ If a subagent reports failure, read the output and decide:
 ## Key Constraints
 
 1. **Do not read spec/requirement files directly** - Let Hook inject to subagents
-2. **Only commit via create-pr action** - Use `multi_agent/create_pr.py` at the end of pipeline
+2. **Only commit via create-pr or direct-merge action** - Use `multi_agent/create_pr.py` or `multi_agent/direct_merge.py` at the end of pipeline
 3. **All subagents should use opus model for complex tasks**
 4. **Keep dispatch logic simple** - Complex logic belongs in subagents
