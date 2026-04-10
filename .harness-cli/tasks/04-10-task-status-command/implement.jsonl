@@ -1,0 +1,8 @@
+{"file": ".harness-cli/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".harness-cli/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".harness-cli/scripts/task.py", "reason": "主文件，需要增强 cmd_list 和新增 cmd_status"}
+{"file": ".harness-cli/scripts/common/tasks.py", "reason": "iter_active_tasks 等核心迭代器"}
+{"file": ".harness-cli/scripts/common/task_queue.py", "reason": "get_task_stats, list_tasks_by_status 等可复用函数"}
+{"file": ".harness-cli/scripts/common/types.py", "reason": "TaskInfo 定义，了解可用字段"}
+{"file": "embedded/templates/claude/commands/hc/scan-kb.md", "reason": "Claude command 格式参考"}
+{"file": ".harness-cli/scripts/common/log.py", "reason": "Colors 等输出工具"}
