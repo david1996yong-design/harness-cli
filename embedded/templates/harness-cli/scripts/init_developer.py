@@ -20,6 +20,7 @@ from common.paths import (
     get_developer,
 )
 from common.developer import init_developer
+from update_workspace_index import update_workspace_index
 
 
 def main() -> None:
@@ -42,6 +43,8 @@ def main() -> None:
         sys.exit(0)
 
     if init_developer(name):
+        # 刷新全局 workspace/index.md
+        update_workspace_index()
         sys.exit(0)
     else:
         sys.exit(1)

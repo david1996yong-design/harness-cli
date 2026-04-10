@@ -1,0 +1,8 @@
+{"file": ".harness-cli/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".harness-cli/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": "embedded/templates/markdown/workspace-index.md", "reason": "当前模板，需要修改"}
+{"file": ".harness-cli/scripts/common/developer.py", "reason": "init_developer 逻辑，末尾需要触发更新"}
+{"file": ".harness-cli/scripts/init_developer.py", "reason": "入口脚本，需要调用更新"}
+{"file": ".harness-cli/scripts/common/tasks.py", "reason": "iter_active_tasks 用于获取任务"}
+{"file": ".harness-cli/scripts/common/task_queue.py", "reason": "list_tasks_by_assignee 可复用"}
+{"file": ".harness-cli/workspace/index.md", "reason": "当前实例文件，了解结构"}

@@ -25,9 +25,11 @@ workspace/
 
 ## Active Developers
 
-| Developer | Last Active | Sessions | Active File |
-|-----------|-------------|----------|-------------|
-| (none yet) | - | - | - |
+<!-- @@@auto:developers -->
+| Developer | Current Tasks | Status | Last Active |
+|-----------|--------------|--------|-------------|
+| (run update_workspace_index.py to populate) | - | - | - |
+<!-- @@@/auto:developers -->
 
 ---
 
@@ -46,6 +48,15 @@ This will:
 2. Create your progress directory
 3. Create your personal index
 4. Create initial journal file
+5. Refresh the global workspace index
+
+### Refresh Global Index
+
+To manually refresh the Active Developers table:
+
+```bash
+python3 ./.harness-cli/scripts/update_workspace_index.py
+```
 
 ### For Returning Developers
 

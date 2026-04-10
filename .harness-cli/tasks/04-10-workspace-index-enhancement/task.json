@@ -1,0 +1,45 @@
+{
+  "id": "workspace-index-enhancement",
+  "name": "workspace-index-enhancement",
+  "title": "brainstorm: workspace index 展示开发者及职责",
+  "description": "",
+  "status": "planning",
+  "dev_type": "backend",
+  "scope": "workspace",
+  "package": null,
+  "priority": "P2",
+  "creator": "david1996yong",
+  "assignee": "david1996yong",
+  "createdAt": "2026-04-10",
+  "completedAt": null,
+  "branch": "feature/workspace-index-enhancement",
+  "base_branch": "master",
+  "worktree_path": "/home/zy/harness-cli-worktrees/feature/workspace-index-enhancement",
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "implement"
+    },
+    {
+      "phase": 2,
+      "action": "check"
+    },
+    {
+      "phase": 3,
+      "action": "finish"
+    },
+    {
+      "phase": 4,
+      "action": "create-pr"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}
