@@ -1,0 +1,45 @@
+{
+  "id": "add-scan-kb-command",
+  "name": "add-scan-kb-command",
+  "title": "Add scan subcommand for KB/PRD generation",
+  "description": "Add a new 'scan' CLI subcommand that creates .harness-cli/kb/prd/ directory structure with templates, and a /hc:scan-kb Claude Code command for AI-powered codebase business logic scanning",
+  "status": "completed",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "david1996yong",
+  "assignee": "david1996yong",
+  "createdAt": "2026-04-10",
+  "completedAt": "2026-04-10",
+  "branch": null,
+  "base_branch": "master",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "implement"
+    },
+    {
+      "phase": 2,
+      "action": "check"
+    },
+    {
+      "phase": 3,
+      "action": "finish"
+    },
+    {
+      "phase": 4,
+      "action": "create-pr"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}
