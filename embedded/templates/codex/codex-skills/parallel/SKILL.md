@@ -58,6 +58,10 @@ Ask the user:
 2. Which modules are involved?
 3. Development type? (backend / frontend / fullstack)
 
+Also detect if the user wants **direct merge** (skip PR):
+- User says `--merge`, `--merge <branch>`, or mentions "direct merge" / "skip PR"
+- If detected, pass `--merge` or `--merge <branch>` to `start.py`
+
 ---
 
 ## Planning: Choose Your Approach
@@ -90,6 +94,10 @@ After `plan.py` completes, start the worktree agent:
 
 ```bash
 python3 ./.harness-cli/scripts/multi_agent/start.py "$TASK_DIR" --platform codex
+
+# Or with direct merge (skip PR):
+python3 ./.harness-cli/scripts/multi_agent/start.py "$TASK_DIR" --platform codex --merge
+python3 ./.harness-cli/scripts/multi_agent/start.py "$TASK_DIR" --platform codex --merge master  # explicit target
 ```
 
 ### Option B: Manual Configuration (For simple or already-clear features) `[AI]`
@@ -139,6 +147,9 @@ END_PRD
 ```bash
 python3 ./.harness-cli/scripts/task.py validate "$TASK_DIR"
 python3 ./.harness-cli/scripts/multi_agent/start.py "$TASK_DIR" --platform codex
+
+# Or with direct merge (skip PR):
+python3 ./.harness-cli/scripts/multi_agent/start.py "$TASK_DIR" --platform codex --merge
 ```
 
 ---
@@ -146,6 +157,11 @@ python3 ./.harness-cli/scripts/multi_agent/start.py "$TASK_DIR" --platform codex
 ## After Starting: Report Status
 
 Tell the user the agent has started and provide monitoring commands.
+
+If `--merge` was used, inform the user that:
+- The agent will **directly merge** into the target branch when done (no PR)
+- On completion, the merge commit hash will be in task.json
+- On conflict, the worktree is preserved for manual resolution
 
 ---
 
@@ -182,13 +198,13 @@ The dispatch agent in the worktree will automatically execute:
 1. implement → Implement feature
 2. check → Check code quality
 3. finish → Final verification
-4. create-pr → Create PR
+4. create-pr → Create PR (default) **or** direct-merge → Merge directly (when `--merge` is used)
 
 ---
 
 ## Core Rules
 
 - **Don't write code directly** - delegate to agents in worktrees
-- **Don't execute git commit** - the flow handles it in the worktree pipeline
+- **Don't execute git commit** - the flow handles it via create-pr or direct-merge action in the worktree pipeline
 - **Delegate complex analysis before dispatch** - find specs, inspect code structure, and reduce ambiguity
 - **Prefer focused tasks** - parallelism works best when each worktree has a narrow scope

@@ -57,6 +57,10 @@ Ask the user:
 2. Which modules are involved?
 3. Development type? (backend / frontend / fullstack)
 
+Also detect if the user wants **direct merge** (skip PR):
+- User says `--merge`, `--merge <branch>`, or mentions "direct merge" / "skip PR"
+- If detected, pass `--merge` or `--merge <branch>` to `start.py`
+
 ---
 
 ## Planning: Choose Your Approach
@@ -88,6 +92,10 @@ After plan.py completes, start the worktree agent:
 
 ```bash
 python3 ./.harness-cli/scripts/multi_agent/start.py "$TASK_DIR"
+
+# Or with direct merge (skip PR):
+python3 ./.harness-cli/scripts/multi_agent/start.py "$TASK_DIR" --merge
+python3 ./.harness-cli/scripts/multi_agent/start.py "$TASK_DIR" --merge master  # explicit target
 ```
 
 ### Option B: Manual Configuration (For simple/clear features) `[AI]`
@@ -141,6 +149,9 @@ EOF
 ```bash
 python3 ./.harness-cli/scripts/task.py validate "$TASK_DIR"
 python3 ./.harness-cli/scripts/multi_agent/start.py "$TASK_DIR"
+
+# Or with direct merge (skip PR):
+python3 ./.harness-cli/scripts/multi_agent/start.py "$TASK_DIR" --merge
 ```
 
 ---
@@ -148,6 +159,11 @@ python3 ./.harness-cli/scripts/multi_agent/start.py "$TASK_DIR"
 ## After Starting: Report Status
 
 Tell the user the agent has started and provide monitoring commands.
+
+If `--merge` was used, inform the user that:
+- The agent will **directly merge** into the target branch when done (no PR)
+- On completion, the merge commit hash will be in task.json
+- On conflict, the worktree is preserved for manual resolution
 
 ---
 
@@ -181,16 +197,16 @@ python3 ./.harness-cli/scripts/multi_agent/cleanup.py <branch>          # Cleanu
 
 The dispatch agent in worktree will automatically execute:
 
-1. implement â†?Implement feature
-2. check â†?Check code quality
-3. finish â†?Final verification
-4. create-pr â†?Create PR
+1. implement â†’ Implement feature
+2. check â†’ Check code quality
+3. finish â†’ Final verification
+4. create-pr â†’ Create PR (default) **or** direct-merge â†’ Merge directly (when `--merge` is used)
 
 ---
 
 ## Core Rules
 
 - **Don't write code directly** - delegate to agents in worktree
-- **Don't execute git commit** - agent does it via create-pr action
+- **Don't execute git commit** - agent does it via create-pr or direct-merge action
 - **Delegate complex analysis to research** - finding specs, analyzing code structure
 - **All sub agents use opus model** - ensure output quality

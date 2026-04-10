@@ -191,10 +191,19 @@ def main() -> int:
         default=DEFAULT_PLATFORM,
         help="Platform to use (default: claude)"
     )
+    parser.add_argument(
+        "--merge",
+        nargs="?",
+        const="__current__",
+        default=None,
+        metavar="BRANCH",
+        help="Direct merge mode: merge into BRANCH instead of creating PR (default: current branch)"
+    )
 
     args = parser.parse_args()
     task_dir_arg = args.task_dir
     platform = args.platform
+    merge_target_arg = args.merge
 
     # Initialize CLI adapter
     adapter = get_cli_adapter(platform)
@@ -282,6 +291,46 @@ def main() -> int:
 
     log_info(f"Branch: {branch}")
     log_info(f"Name: {task_name}")
+
+    # =============================================================================
+    # --merge: Configure direct merge mode
+    # =============================================================================
+    if merge_target_arg is not None:
+        # Resolve merge target branch
+        if merge_target_arg == "__current__":
+            # Default: use current branch (base_branch)
+            _, cur_branch_out, _ = run_git(
+                ["branch", "--show-current"], cwd=project_root
+            )
+            merge_target = cur_branch_out.strip()
+        else:
+            merge_target = merge_target_arg
+
+        log_info(f"Merge mode: direct (target: {merge_target})")
+
+        # Write merge mode to task.json
+        task_data["merge_mode"] = "direct"
+        task_data["merge_target"] = merge_target
+
+        # Replace last action (create-pr) with direct-merge
+        next_action = task_data.get("next_action", [])
+        if isinstance(next_action, list) and next_action:
+            last = next_action[-1]
+            if isinstance(last, dict) and last.get("action") == "create-pr":
+                last["action"] = "direct-merge"
+                log_info("Replaced last phase action: create-pr -> direct-merge")
+            else:
+                log_warn(
+                    f"Last action is '{last.get('action') if isinstance(last, dict) else last}', "
+                    "not 'create-pr'. Adding direct-merge as new last phase."
+                )
+                max_phase = max(
+                    (item.get("phase", 0) for item in next_action if isinstance(item, dict)),
+                    default=0,
+                )
+                next_action.append({"phase": max_phase + 1, "action": "direct-merge"})
+
+        write_json(task_json_path, task_data)
 
     # =============================================================================
     # Step 1: Create Worktree (if not exists)
