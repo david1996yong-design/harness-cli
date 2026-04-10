@@ -1,0 +1,8 @@
+{"file": ".harness-cli/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".harness-cli/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": "src/commands/scan.rs", "reason": "主改动：新增 kb/tech 脚手架"}
+{"file": "src/templates/markdown.rs", "reason": "主改动：新增 tech 模板访问器"}
+{"file": "src/constants/paths.rs", "reason": "主改动：新增 KB_TECH 常量"}
+{"file": "embedded/templates/claude/commands/hc/scan-kb.md", "reason": "参考：scan-kb 命令格式"}
+{"file": "embedded/templates/markdown/kb/prd/index.md.txt", "reason": "参考：prd index 模板格式"}
+{"file": "embedded/templates/markdown/kb/prd/module-template.md.txt", "reason": "参考：prd 模块模板格式"}

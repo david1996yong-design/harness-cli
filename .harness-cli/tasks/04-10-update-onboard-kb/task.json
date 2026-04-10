@@ -1,7 +1,7 @@
 {
-  "id": "04-10-update-kb",
-  "name": "04-10-update-kb",
-  "title": "update-kb: 增量更新产品知识库",
+  "id": "update-onboard-kb",
+  "name": "update-onboard-kb",
+  "title": "brainstorm: 更新 onboard 命令覆盖 KB 系统与全部新命令",
   "description": "",
   "status": "in_progress",
   "dev_type": "backend",
@@ -12,9 +12,9 @@
   "assignee": "david1996yong",
   "createdAt": "2026-04-10",
   "completedAt": null,
-  "branch": "feature/update-kb",
+  "branch": "feature/update-onboard-kb",
   "base_branch": "master",
-  "worktree_path": "/home/zy/harness-cli-worktrees/feature/update-kb",
+  "worktree_path": "/home/zy/harness-cli-worktrees/feature/update-onboard-kb",
   "current_phase": 0,
   "next_action": [
     {

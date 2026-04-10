@@ -1,0 +1,5 @@
+{"file": ".harness-cli/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".harness-cli/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".harness-cli/kb/prd/index.md", "reason": "现有模块索引，了解当前状态"}
+{"file": ".harness-cli/kb/prd/_module-template.md", "reason": "模块文档模板"}
+{"file": "embedded/templates/claude/commands/hc/scan-kb.md", "reason": "scan-kb 命令流程参考"}

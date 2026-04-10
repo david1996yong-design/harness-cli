@@ -1,20 +1,20 @@
 {
-  "id": "04-10-update-kb",
-  "name": "04-10-update-kb",
-  "title": "update-kb: 增量更新产品知识库",
+  "id": "task-set-priority",
+  "name": "task-set-priority",
+  "title": "task.py 新增 set-priority 子命令",
   "description": "",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": "backend",
-  "scope": "claude-commands",
+  "scope": "task-set-priority",
   "package": null,
   "priority": "P2",
   "creator": "david1996yong",
   "assignee": "david1996yong",
   "createdAt": "2026-04-10",
-  "completedAt": null,
-  "branch": "feature/update-kb",
+  "completedAt": "2026-04-11",
+  "branch": "feature/task-set-priority",
   "base_branch": "master",
-  "worktree_path": "/home/zy/harness-cli-worktrees/feature/update-kb",
+  "worktree_path": "/home/zy/harness-cli-worktrees/feature/task-set-priority",
   "current_phase": 0,
   "next_action": [
     {
@@ -31,7 +31,7 @@
     },
     {
       "phase": 4,
-      "action": "create-pr"
+      "action": "direct-merge"
     }
   ],
   "commit": null,
@@ -41,5 +41,7 @@
   "parent": null,
   "relatedFiles": [],
   "notes": "",
-  "meta": {}
+  "meta": {},
+  "merge_mode": "direct",
+  "merge_target": "master"
 }

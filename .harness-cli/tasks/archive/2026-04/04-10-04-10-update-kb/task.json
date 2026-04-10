@@ -1,20 +1,20 @@
 {
-  "id": "workflow-modes",
-  "name": "workflow-modes",
-  "title": "brainstorm: 三大工作模式 (dev/debug/arch)",
+  "id": "04-10-update-kb",
+  "name": "04-10-update-kb",
+  "title": "update-kb: 增量更新产品知识库",
   "description": "",
   "status": "planning",
   "dev_type": "backend",
-  "scope": "workflow-modes",
+  "scope": "claude-commands",
   "package": null,
   "priority": "P2",
   "creator": "david1996yong",
   "assignee": "david1996yong",
   "createdAt": "2026-04-10",
   "completedAt": null,
-  "branch": "feature/workflow-modes",
+  "branch": "feature/update-kb",
   "base_branch": "master",
-  "worktree_path": "/home/zy/harness-cli-worktrees/feature/workflow-modes",
+  "worktree_path": "/home/zy/harness-cli-worktrees/feature/update-kb",
   "current_phase": 0,
   "next_action": [
     {
@@ -31,7 +31,7 @@
     },
     {
       "phase": 4,
-      "action": "direct-merge"
+      "action": "create-pr"
     }
   ],
   "commit": null,
@@ -41,7 +41,5 @@
   "parent": null,
   "relatedFiles": [],
   "notes": "",
-  "meta": {},
-  "merge_mode": "direct",
-  "merge_target": "master"
+  "meta": {}
 }

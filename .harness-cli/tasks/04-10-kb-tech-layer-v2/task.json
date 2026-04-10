@@ -1,20 +1,20 @@
 {
-  "id": "04-10-update-kb",
-  "name": "04-10-update-kb",
-  "title": "update-kb: 增量更新产品知识库",
+  "id": "kb-tech-layer-v2",
+  "name": "kb-tech-layer-v2",
+  "title": "KB 新增 tech 系统架构知识库",
   "description": "",
   "status": "in_progress",
   "dev_type": "backend",
-  "scope": "claude-commands",
+  "scope": "kb-tech-layer",
   "package": null,
   "priority": "P2",
   "creator": "david1996yong",
   "assignee": "david1996yong",
   "createdAt": "2026-04-10",
   "completedAt": null,
-  "branch": "feature/update-kb",
+  "branch": "feature/kb-tech-layer-v2",
   "base_branch": "master",
-  "worktree_path": "/home/zy/harness-cli-worktrees/feature/update-kb",
+  "worktree_path": "/home/zy/harness-cli-worktrees/feature/kb-tech-layer-v2",
   "current_phase": 0,
   "next_action": [
     {
@@ -31,7 +31,7 @@
     },
     {
       "phase": 4,
-      "action": "create-pr"
+      "action": "direct-merge"
     }
   ],
   "commit": null,
@@ -41,5 +41,7 @@
   "parent": null,
   "relatedFiles": [],
   "notes": "",
-  "meta": {}
+  "meta": {},
+  "merge_mode": "direct",
+  "merge_target": "master"
 }
