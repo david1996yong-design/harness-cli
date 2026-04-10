@@ -148,14 +148,16 @@ pub fn normalize_registry_source(source: &str) -> String {
         ),
     ];
 
+    let tree_re = regex::Regex::new(
+        r"^([^/]+/[^/]+)/tree/([^/]+)(?:/(.+?))?(?:\.git)?/?$",
+    )
+    .unwrap();
+    let git_suffix_re = regex::Regex::new(r"\.git/?$").unwrap();
+
     for (re, prefix) in &patterns {
         if re.is_match(source) {
             let path = re.replace(source, "").to_string();
             // Handle /tree/<branch>/<subdir> format (GitHub browse URLs).
-            let tree_re = regex::Regex::new(
-                r"^([^/]+/[^/]+)/tree/([^/]+)(?:/(.+?))?(?:\.git)?/?$",
-            )
-            .unwrap();
             if let Some(caps) = tree_re.captures(&path) {
                 let repo = &caps[1];
                 let ref_ = &caps[2];
@@ -169,8 +171,7 @@ pub fn normalize_registry_source(source: &str) -> String {
                 );
             }
             // Plain URL: strip trailing .git and /.
-            let cleaned = regex::Regex::new(r"\.git/?$")
-                .unwrap()
+            let cleaned = git_suffix_re
                 .replace(&path, "")
                 .trim_end_matches('/')
                 .to_string();
@@ -600,7 +601,7 @@ pub fn download_template_by_id(
         Some(t.clone())
     } else {
         let index_url = registry.map(|r| format!("{}/index.json", r.raw_base_url));
-        if let Some(ref _reg) = registry {
+        if let Some(_reg) = registry {
             if let Some(ref url) = index_url {
                 let (templates, is_not_found) = probe_registry_index(url);
                 if templates.is_empty() && !is_not_found {

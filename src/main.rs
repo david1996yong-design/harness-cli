@@ -96,6 +96,12 @@ enum Commands {
         registry: Option<String>,
     },
 
+    /// Create KB (knowledge base) directory structure with templates
+    Scan {
+        #[arg(short = 'f', long, help = "Overwrite existing files without asking")]
+        force: bool,
+    },
+
     /// Update harness-cli configuration and commands to latest version
     Update {
         #[arg(long, help = "Preview changes without applying them")]
@@ -246,6 +252,7 @@ fn main() {
                 monorepo: monorepo_opt,
             })
         }
+        Commands::Scan { force } => commands::scan::scan(commands::scan::ScanOptions { force }),
         Commands::Update {
             dry_run,
             force,

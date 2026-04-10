@@ -410,10 +410,11 @@ fn parse_pnpm_workspace(cwd: &Path) -> Option<Vec<String>> {
     let content = std::fs::read_to_string(cwd.join("pnpm-workspace.yaml")).ok()?;
     let mut patterns: Vec<String> = Vec::new();
     let mut in_packages = false;
+    let packages_re = Regex::new(r"^packages\s*:").unwrap();
 
     for line in content.lines() {
         let trimmed = line.trim();
-        if Regex::new(r"^packages\s*:").unwrap().is_match(trimmed) {
+        if packages_re.is_match(trimmed) {
             in_packages = true;
             continue;
         }

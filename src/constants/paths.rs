@@ -21,6 +21,12 @@ pub mod dir_names {
     pub const SPEC: &str = "spec";
     /// Scripts directory (under `.harness-cli/`).
     pub const SCRIPTS: &str = "scripts";
+    /// Knowledge base directory (under `.harness-cli/`).
+    pub const KB: &str = "kb";
+    /// Product knowledge base (under `kb/`).
+    pub const KB_PRD: &str = "prd";
+    /// Technical architecture knowledge base (under `kb/`).
+    pub const KB_TECH: &str = "tech";
 }
 
 // ---------------------------------------------------------------------------
@@ -61,6 +67,12 @@ pub mod constructed {
     pub const SPEC: &str = ".harness-cli/spec";
     /// `.harness-cli/scripts/`
     pub const SCRIPTS: &str = ".harness-cli/scripts";
+    /// `.harness-cli/kb/`
+    pub const KB: &str = ".harness-cli/kb";
+    /// `.harness-cli/kb/prd/`
+    pub const KB_PRD: &str = ".harness-cli/kb/prd";
+    /// `.harness-cli/kb/tech/`
+    pub const KB_TECH: &str = ".harness-cli/kb/tech";
     /// `.harness-cli/.developer`
     pub const DEVELOPER_FILE: &str = ".harness-cli/.developer";
     /// `.harness-cli/.current-task`
@@ -155,6 +167,28 @@ mod tests {
             constructed::SCRIPTS,
             format!("{}/{}", dir_names::WORKFLOW, dir_names::SCRIPTS)
         );
+        assert_eq!(
+            constructed::KB,
+            format!("{}/{}", dir_names::WORKFLOW, dir_names::KB)
+        );
+        assert_eq!(
+            constructed::KB_PRD,
+            format!(
+                "{}/{}/{}",
+                dir_names::WORKFLOW,
+                dir_names::KB,
+                dir_names::KB_PRD
+            )
+        );
+        assert_eq!(
+            constructed::KB_TECH,
+            format!(
+                "{}/{}/{}",
+                dir_names::WORKFLOW,
+                dir_names::KB,
+                dir_names::KB_TECH
+            )
+        );
     }
 
     // --- Additional tests ported from TypeScript ---
@@ -172,6 +206,9 @@ mod tests {
             constructed::TASKS,
             constructed::SPEC,
             constructed::SCRIPTS,
+            constructed::KB,
+            constructed::KB_PRD,
+            constructed::KB_TECH,
             constructed::DEVELOPER_FILE,
             constructed::CURRENT_TASK_FILE,
             constructed::WORKFLOW_GUIDE_FILE,
@@ -203,6 +240,21 @@ mod tests {
     #[test]
     fn test_scripts_path() {
         assert_eq!(constructed::SCRIPTS, ".harness-cli/scripts");
+    }
+
+    #[test]
+    fn test_kb_path() {
+        assert_eq!(constructed::KB, ".harness-cli/kb");
+    }
+
+    #[test]
+    fn test_kb_prd_path() {
+        assert_eq!(constructed::KB_PRD, ".harness-cli/kb/prd");
+    }
+
+    #[test]
+    fn test_kb_tech_path() {
+        assert_eq!(constructed::KB_TECH, ".harness-cli/kb/tech");
     }
 
     #[test]
@@ -241,6 +293,9 @@ mod tests {
             constructed::TASKS,
             constructed::SPEC,
             constructed::SCRIPTS,
+            constructed::KB,
+            constructed::KB_PRD,
+            constructed::KB_TECH,
             constructed::DEVELOPER_FILE,
             constructed::CURRENT_TASK_FILE,
             constructed::WORKFLOW_GUIDE_FILE,

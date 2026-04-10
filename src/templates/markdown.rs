@@ -99,6 +99,26 @@ md_template!(
     "spec/guides/code-reuse-thinking-guide.md.txt"
 );
 
+// ---------------------------------------------------------------------------
+// KB PRD templates
+// ---------------------------------------------------------------------------
+
+md_template!(kb_prd_index_content, "kb/prd/index.md.txt");
+md_template!(
+    kb_prd_module_template_content,
+    "kb/prd/module-template.md.txt"
+);
+
+// ---------------------------------------------------------------------------
+// KB Tech templates
+// ---------------------------------------------------------------------------
+
+md_template!(kb_tech_index_content, "kb/tech/index.md.txt");
+md_template!(
+    kb_tech_module_template_content,
+    "kb/tech/module-template.md.txt"
+);
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -171,5 +191,35 @@ mod tests {
             !content.is_empty(),
             "agent_progress_index (workspace-index.md) should be non-empty"
         );
+    }
+
+    #[test]
+    fn test_kb_prd_templates_non_empty() {
+        let templates: Vec<(&str, &str)> = vec![
+            ("kb_prd_index", kb_prd_index_content()),
+            ("kb_prd_module_template", kb_prd_module_template_content()),
+        ];
+        for (name, content) in templates {
+            assert!(
+                !content.is_empty(),
+                "KB PRD template '{}' should be non-empty",
+                name
+            );
+        }
+    }
+
+    #[test]
+    fn test_kb_tech_templates_non_empty() {
+        let templates: Vec<(&str, &str)> = vec![
+            ("kb_tech_index", kb_tech_index_content()),
+            ("kb_tech_module_template", kb_tech_module_template_content()),
+        ];
+        for (name, content) in templates {
+            assert!(
+                !content.is_empty(),
+                "KB Tech template '{}' should be non-empty",
+                name
+            );
+        }
     }
 }
