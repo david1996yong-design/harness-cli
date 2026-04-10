@@ -366,6 +366,20 @@ def main() -> int:
             f"Task status updated to 'completed', phase {direct_merge_phase}"
         )
 
+        # Sync task.json to main repo (worktree copy won't persist after cleanup)
+        if main_repo_root != repo_root and target_dir and not target_dir.startswith("/"):
+            main_task_json = main_repo_root / target_dir / FILE_TASK_JSON
+            if main_task_json.is_file():
+                main_task_data = read_json(main_task_json)
+                if main_task_data:
+                    main_task_data["status"] = "completed"
+                    main_task_data["current_phase"] = direct_merge_phase
+                    main_task_data["merge_commit"] = merge_commit
+                    write_json(main_task_json, main_task_data)
+                    log_success("Main repo task.json synced")
+            else:
+                log_warn(f"Main repo task.json not found at {main_task_json}")
+
     # =============================================================================
     # Summary
     # =============================================================================

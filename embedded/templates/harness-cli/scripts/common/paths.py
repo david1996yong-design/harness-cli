@@ -63,6 +63,43 @@ def get_repo_root(start_path: Path | None = None) -> Path:
 
 
 # =============================================================================
+# Main Repository Root (resolves through worktree)
+# =============================================================================
+
+def get_main_repo_root(repo_root: Path | None = None) -> Path:
+    """Get the main repository root, resolving through worktree if needed.
+
+    In a git worktree, .git is a file (not a directory) containing a pointer
+    to the main repo's .git/worktrees/<name>.  This function follows that
+    reference to return the actual main repo root.
+
+    Args:
+        repo_root: Starting repo root (may be a worktree). Defaults to auto-detected.
+
+    Returns:
+        Path to the main repository root.
+    """
+    if repo_root is None:
+        repo_root = get_repo_root()
+
+    git_path = repo_root / ".git"
+    if git_path.is_file():
+        try:
+            gitdir_content = git_path.read_text(encoding="utf-8").strip()
+            if gitdir_content.startswith("gitdir: "):
+                gitdir_path = Path(gitdir_content[8:])
+                if not gitdir_path.is_absolute():
+                    gitdir_path = (repo_root / gitdir_path).resolve()
+                # .git/worktrees/<name> -> .git -> repo root
+                main_repo_git = gitdir_path.parent.parent
+                return main_repo_git.parent
+        except (OSError, IOError):
+            pass
+
+    return repo_root
+
+
+# =============================================================================
 # Developer
 # =============================================================================
 

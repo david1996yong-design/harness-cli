@@ -33,6 +33,7 @@ from common.paths import (
     DIR_WORKFLOW,
     FILE_TASK_JSON,
     get_current_task,
+    get_main_repo_root,
     get_repo_root,
 )
 from common.phase import get_phase_for_action
@@ -600,6 +601,27 @@ def main() -> int:
         print(
             f"{Colors.GREEN}Task status updated to 'completed', phase {create_pr_phase}{Colors.NC}"
         )
+
+        # Sync task.json to main repo (worktree copy won't persist after cleanup)
+        main_repo_root = get_main_repo_root(repo_root)
+        if main_repo_root != repo_root and target_dir and not target_dir.startswith("/"):
+            main_task_json = main_repo_root / target_dir / FILE_TASK_JSON
+            if main_task_json.is_file():
+                main_task_data = read_json(main_task_json)
+                if main_task_data:
+                    main_task_data["status"] = "completed"
+                    main_task_data["pr_url"] = pr_url
+                    main_task_data["current_phase"] = create_pr_phase
+                    if has_submodule_prs:
+                        main_task_data["submodule_prs"] = submodule_prs
+                    write_json(main_task_json, main_task_data)
+                    print(
+                        f"{Colors.GREEN}Main repo task.json synced{Colors.NC}"
+                    )
+            else:
+                print(
+                    f"{Colors.YELLOW}[WARN] Main repo task.json not found at {main_task_json}{Colors.NC}"
+                )
 
     # In dry-run, reset the staging area
     if args.dry_run:
