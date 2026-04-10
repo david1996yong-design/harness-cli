@@ -3,7 +3,7 @@
   "name": "04-10-update-kb",
   "title": "update-kb: 增量更新产品知识库",
   "description": "",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": "backend",
   "scope": "claude-commands",
   "package": null,
