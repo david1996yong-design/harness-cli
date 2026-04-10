@@ -1,0 +1,51 @@
+[package]
+name = "harness-cli"
+version = "0.4.0-beta.8"
+edition = "2021"
+description = "AI capabilities grow like ivy — Harness CLI provides the structure to guide them along a disciplined path"
+license = "AGPL-3.0-only"
+repository = "https://github.com/david1996yong-design/harness-cli"
+keywords = ["ai", "workflow", "cursor", "claude", "cli", "developer-tools", "agent"]
+authors = ["david1996yong <david1996yong@gmail.com>"]
+
+[[bin]]
+name = "harness-cli"
+path = "src/main.rs"
+
+[dependencies]
+# CLI
+clap = { version = "4", features = ["derive"] }
+# Interactive prompts
+dialoguer = "0.11"
+# Terminal colors
+colored = "2"
+# ASCII art
+figlet-rs = "0.1"
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# HTTP client
+reqwest = { version = "0.12", features = ["blocking", "json"] }
+# SHA256 hashing
+sha2 = "0.10"
+hex = "0.4"
+# Embedded templates
+rust-embed = { version = "8", features = ["include-exclude"] }
+# Glob pattern matching
+glob = "0.3"
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+# Error handling
+anyhow = "1"
+thiserror = "2"
+# Regex
+regex = "1"
+# Temp directory
+tempfile = "3"
+# Git operations
+which = "7"
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true
