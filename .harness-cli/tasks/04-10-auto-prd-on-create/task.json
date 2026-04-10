@@ -1,0 +1,45 @@
+{
+  "id": "auto-prd-on-create",
+  "name": "auto-prd-on-create",
+  "title": "任务创建时自动生成PRD",
+  "description": "task.py create 时自动读取 kb/prd/index.md，生成包含业务上下文的 prd.md 模板",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "david1996yong",
+  "assignee": "david1996yong",
+  "createdAt": "2026-04-10",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "master",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "implement"
+    },
+    {
+      "phase": 2,
+      "action": "check"
+    },
+    {
+      "phase": 3,
+      "action": "finish"
+    },
+    {
+      "phase": 4,
+      "action": "create-pr"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}
