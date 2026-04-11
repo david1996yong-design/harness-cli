@@ -7,9 +7,19 @@ Execute these steps:
    python3 ./.harness-cli/scripts/task.py status --json
    ```
 
-2. **Get agent running status** (if registry exists):
+2. **Get agent running status** (use registry module to find correct path):
    ```bash
-   cat .harness-cli/agents/registry.json 2>/dev/null || echo '{"agents":[]}'
+   python3 -c "from harness_cli.scripts.common.registry import registry_list_agents; import json; print(json.dumps({'agents': registry_list_agents()}, indent=2))" 2>/dev/null || python3 -c "
+import json
+from pathlib import Path
+repo = Path('.harness-cli')
+# Find registry.json under workspace/<developer>/.agents/
+registries = list(repo.glob('workspace/*/.agents/registry.json'))
+if registries:
+    print(registries[0].read_text())
+else:
+    print(json.dumps({'agents': []}))
+"
    ```
 
 3. **Format as dashboard** using the JSON data:
