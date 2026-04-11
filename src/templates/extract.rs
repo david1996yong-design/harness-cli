@@ -199,12 +199,10 @@ pub fn copy_embedded_dir<T: Embed>(dest: &Path, options: &CopyOptions) -> Result
         // Optionally resolve placeholders
         if options.resolve_placeholders {
             let should_resolve = match &options.placeholder_filename {
-                Some(name) => {
-                    Path::new(file_path_str)
-                        .file_name()
-                        .map(|f| f.to_string_lossy() == name.as_str())
-                        .unwrap_or(false)
-                }
+                Some(name) => Path::new(file_path_str)
+                    .file_name()
+                    .map(|f| f.to_string_lossy() == name.as_str())
+                    .unwrap_or(false),
                 None => true,
             };
             if should_resolve {

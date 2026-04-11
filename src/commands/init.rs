@@ -18,9 +18,8 @@ use crate::utils::project_detector::{
 };
 use crate::utils::proxy::{mask_proxy_url, setup_proxy};
 use crate::utils::template_fetcher::{
-    download_registry_direct, download_template_by_id, fetch_template_index,
-    parse_registry_source, probe_registry_index, RegistrySource, SpecTemplate, TemplateStrategy,
-    TEMPLATE_INDEX_URL,
+    download_registry_direct, download_template_by_id, fetch_template_index, parse_registry_source,
+    probe_registry_index, RegistrySource, SpecTemplate, TemplateStrategy, TEMPLATE_INDEX_URL,
 };
 use crate::utils::template_hash::initialize_hashes;
 
@@ -339,9 +338,7 @@ fn get_bootstrap_task_json(
     })
 }
 
-fn default_subtasks_and_files(
-    project_type: ProjectType,
-) -> (Vec<serde_json::Value>, Vec<String>) {
+fn default_subtasks_and_files(project_type: ProjectType) -> (Vec<serde_json::Value>, Vec<String>) {
     match project_type {
         ProjectType::Frontend => (
             vec![
@@ -409,9 +406,7 @@ fn create_bootstrap_task(
     project_type: ProjectType,
     packages: Option<&[DetectedPackage]>,
 ) -> bool {
-    let task_dir = cwd
-        .join(constructed::TASKS)
-        .join(BOOTSTRAP_TASK_NAME);
+    let task_dir = cwd.join(constructed::TASKS).join(BOOTSTRAP_TASK_NAME);
     let task_relative_path = format!("{}/{}", constructed::TASKS, BOOTSTRAP_TASK_NAME);
 
     if task_dir.exists() {
@@ -539,14 +534,13 @@ fn create_root_files(cwd: &Path) -> Result<()> {
     let agents_path = cwd.join("AGENTS.md");
 
     // Try to get AGENTS.md content from embedded templates
-    let agents_content =
-        crate::templates::extract::get_embedded_file::<crate::templates::extract::MarkdownTemplates>(
-            "AGENTS.md",
-        )
-        .unwrap_or_else(|| {
-            // Fallback minimal content
-            "# AGENTS.md\n\nSee `.harness-cli/` for project workflow and guidelines.\n".to_string()
-        });
+    let agents_content = crate::templates::extract::get_embedded_file::<
+        crate::templates::extract::MarkdownTemplates,
+    >("AGENTS.md")
+    .unwrap_or_else(|| {
+        // Fallback minimal content
+        "# AGENTS.md\n\nSee `.harness-cli/` for project workflow and guidelines.\n".to_string()
+    });
 
     let written = write_file(&agents_path, &agents_content, false)?;
     if written {
@@ -581,7 +575,10 @@ pub fn init(options: InitOptions) -> Result<()> {
     // Set up proxy before any network calls
     let proxy_url = setup_proxy();
     if let Some(ref url) = proxy_url {
-        println!("{}", format!("   Using proxy: {}\n", mask_proxy_url(url)).dimmed());
+        println!(
+            "{}",
+            format!("   Using proxy: {}\n", mask_proxy_url(url)).dimmed()
+        );
     }
 
     // Set write mode based on options
@@ -673,7 +670,8 @@ pub fn init(options: InitOptions) -> Result<()> {
     // =========================================================================
 
     let mut monorepo_packages: Option<Vec<DetectedPackage>> = None;
-    let mut _remote_spec_packages: std::collections::HashSet<String> = std::collections::HashSet::new();
+    let mut _remote_spec_packages: std::collections::HashSet<String> =
+        std::collections::HashSet::new();
 
     if options.monorepo != Some(false) {
         let detected = detect_monorepo(&cwd);
@@ -707,11 +705,8 @@ pub fn init(options: InitOptions) -> Result<()> {
                         };
                         println!(
                             "{}",
-                            format!(
-                                "   - {} ({}) [{}]{}",
-                                pkg.name, pkg.path, type_str, sub
-                            )
-                            .dimmed()
+                            format!("   - {} ({}) [{}]{}", pkg.name, pkg.path, type_str, sub)
+                                .dimmed()
                         );
                     }
                     println!();
@@ -727,9 +722,15 @@ pub fn init(options: InitOptions) -> Result<()> {
                     // Per-package template selection
                     if !options.yes && options.template.is_none() {
                         for pkg in packages {
-                            let choices = &["From scratch (Harness CLI default)", "Download remote template"];
+                            let choices = &[
+                                "From scratch (Harness CLI default)",
+                                "Download remote template",
+                            ];
                             let selection = Select::new()
-                                .with_prompt(format!("Spec source for {} ({}):", pkg.name, pkg.path))
+                                .with_prompt(format!(
+                                    "Spec source for {} ({}):",
+                                    pkg.name, pkg.path
+                                ))
                                 .items(choices)
                                 .default(0)
                                 .interact()
@@ -740,13 +741,14 @@ pub fn init(options: InitOptions) -> Result<()> {
                                 let dest_dir = cwd
                                     .join(constructed::SPEC)
                                     .join(sanitize_pkg_name(&pkg.name));
-                                println!("{}", format!("  Select template for {}...", pkg.name).blue());
+                                println!(
+                                    "{}",
+                                    format!("  Select template for {}...", pkg.name).blue()
+                                );
 
                                 let templates = fetch_template_index(None);
-                                let spec_templates: Vec<&SpecTemplate> = templates
-                                    .iter()
-                                    .filter(|t| t.type_ == "spec")
-                                    .collect();
+                                let spec_templates: Vec<&SpecTemplate> =
+                                    templates.iter().filter(|t| t.type_ == "spec").collect();
 
                                 if !spec_templates.is_empty() {
                                     let template_names: Vec<String> = spec_templates
@@ -771,14 +773,10 @@ pub fn init(options: InitOptions) -> Result<()> {
 
                                     if result.success {
                                         println!("{}", format!("   {}", result.message).green());
-                                        _remote_spec_packages
-                                            .insert(sanitize_pkg_name(&pkg.name));
+                                        _remote_spec_packages.insert(sanitize_pkg_name(&pkg.name));
                                     } else {
                                         println!("{}", format!("   {}", result.message).yellow());
-                                        println!(
-                                            "{}",
-                                            "   Falling back to blank spec...".dimmed()
-                                        );
+                                        println!("{}", "   Falling back to blank spec...".dimmed());
                                     }
                                 } else {
                                     println!(
@@ -865,7 +863,6 @@ pub fn init(options: InitOptions) -> Result<()> {
         );
         return Ok(());
     }
-
 
     // =========================================================================
     // Template Selection (single-repo only)
@@ -1081,67 +1078,70 @@ pub fn init(options: InitOptions) -> Result<()> {
             } else {
                 format!("harness-cli init --template {}", tmpl_id)
             };
-            println!("{}", format!("   You can retry later: {}", retry_cmd).dimmed());
+            println!(
+                "{}",
+                format!("   You can retry later: {}", retry_cmd).dimmed()
+            );
         }
     } else if let Some(ref reg) = registry {
         if fetched_templates.is_empty() && monorepo_packages.is_none() {
-        // Direct download mode
-        println!(
-            "{}",
-            format!("  Downloading spec from {}...", reg.giget_source).blue()
-        );
-        println!(
-            "{}",
-            "   This may take a moment on slow connections.".dimmed()
-        );
-
-        // Ask about existing spec dir in interactive mode
-        if !options.yes && !options.overwrite && !options.append {
-            let spec_dir = cwd.join(constructed::SPEC);
-            if spec_dir.exists() {
-                let action_choices = &[
-                    "Skip (keep existing)",
-                    "Overwrite (replace all)",
-                    "Append (add missing files only)",
-                ];
-                let action_sel = Select::new()
-                    .with_prompt(format!(
-                        "Directory {} already exists. What do you want to do?",
-                        constructed::SPEC
-                    ))
-                    .items(action_choices)
-                    .default(0)
-                    .interact()
-                    .unwrap_or(0);
-
-                template_strategy = match action_sel {
-                    1 => TemplateStrategy::Overwrite,
-                    2 => TemplateStrategy::Append,
-                    _ => TemplateStrategy::Skip,
-                };
-            }
-        }
-
-        let result = download_registry_direct(&cwd, reg, template_strategy, None);
-        if result.success {
-            if result.skipped {
-                println!("{}", format!("   {}", result.message).dimmed());
-            } else {
-                println!("{}", format!("   {}", result.message).green());
-                _use_remote_template = true;
-            }
-        } else {
-            println!("{}", format!("   {}", result.message).yellow());
-            println!("{}", "   Falling back to blank templates...".dimmed());
+            // Direct download mode
             println!(
                 "{}",
-                format!(
-                    "   You can retry later: harness-cli init --registry {}",
-                    reg.giget_source
-                )
-                .dimmed()
+                format!("  Downloading spec from {}...", reg.giget_source).blue()
             );
-        }
+            println!(
+                "{}",
+                "   This may take a moment on slow connections.".dimmed()
+            );
+
+            // Ask about existing spec dir in interactive mode
+            if !options.yes && !options.overwrite && !options.append {
+                let spec_dir = cwd.join(constructed::SPEC);
+                if spec_dir.exists() {
+                    let action_choices = &[
+                        "Skip (keep existing)",
+                        "Overwrite (replace all)",
+                        "Append (add missing files only)",
+                    ];
+                    let action_sel = Select::new()
+                        .with_prompt(format!(
+                            "Directory {} already exists. What do you want to do?",
+                            constructed::SPEC
+                        ))
+                        .items(action_choices)
+                        .default(0)
+                        .interact()
+                        .unwrap_or(0);
+
+                    template_strategy = match action_sel {
+                        1 => TemplateStrategy::Overwrite,
+                        2 => TemplateStrategy::Append,
+                        _ => TemplateStrategy::Skip,
+                    };
+                }
+            }
+
+            let result = download_registry_direct(&cwd, reg, template_strategy, None);
+            if result.success {
+                if result.skipped {
+                    println!("{}", format!("   {}", result.message).dimmed());
+                } else {
+                    println!("{}", format!("   {}", result.message).green());
+                    _use_remote_template = true;
+                }
+            } else {
+                println!("{}", format!("   {}", result.message).yellow());
+                println!("{}", "   Falling back to blank templates...".dimmed());
+                println!(
+                    "{}",
+                    format!(
+                        "   You can retry later: harness-cli init --registry {}",
+                        reg.giget_source
+                    )
+                    .dimmed()
+                );
+            }
         } // end if fetched_templates.is_empty()
     }
 
@@ -1224,12 +1224,7 @@ pub fn init(options: InitOptions) -> Result<()> {
         }
 
         // Create bootstrap task
-        create_bootstrap_task(
-            &cwd,
-            name,
-            project_type,
-            monorepo_packages.as_deref(),
-        );
+        create_bootstrap_task(&cwd, name, project_type, monorepo_packages.as_deref());
     }
 
     // Print "What We Solve" section

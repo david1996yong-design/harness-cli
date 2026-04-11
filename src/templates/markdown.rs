@@ -13,9 +13,8 @@ macro_rules! md_template {
     ($fn_name:ident, $path:expr) => {
         pub fn $fn_name() -> &'static str {
             static CONTENT: std::sync::OnceLock<String> = std::sync::OnceLock::new();
-            CONTENT.get_or_init(|| {
-                get_embedded_file::<MarkdownTemplates>($path).unwrap_or_default()
-            })
+            CONTENT
+                .get_or_init(|| get_embedded_file::<MarkdownTemplates>($path).unwrap_or_default())
         }
     };
 }
@@ -133,10 +132,22 @@ mod tests {
     fn test_backend_templates_non_empty() {
         let templates: Vec<(&str, &str)> = vec![
             ("backend_index", backend_index_content()),
-            ("backend_directory_structure", backend_directory_structure_content()),
-            ("backend_database_guidelines", backend_database_guidelines_content()),
-            ("backend_logging_guidelines", backend_logging_guidelines_content()),
-            ("backend_quality_guidelines", backend_quality_guidelines_content()),
+            (
+                "backend_directory_structure",
+                backend_directory_structure_content(),
+            ),
+            (
+                "backend_database_guidelines",
+                backend_database_guidelines_content(),
+            ),
+            (
+                "backend_logging_guidelines",
+                backend_logging_guidelines_content(),
+            ),
+            (
+                "backend_quality_guidelines",
+                backend_quality_guidelines_content(),
+            ),
             ("backend_error_handling", backend_error_handling_content()),
         ];
         for (name, content) in templates {
@@ -152,12 +163,27 @@ mod tests {
     fn test_frontend_templates_non_empty() {
         let templates: Vec<(&str, &str)> = vec![
             ("frontend_index", frontend_index_content()),
-            ("frontend_directory_structure", frontend_directory_structure_content()),
+            (
+                "frontend_directory_structure",
+                frontend_directory_structure_content(),
+            ),
             ("frontend_type_safety", frontend_type_safety_content()),
-            ("frontend_hook_guidelines", frontend_hook_guidelines_content()),
-            ("frontend_component_guidelines", frontend_component_guidelines_content()),
-            ("frontend_quality_guidelines", frontend_quality_guidelines_content()),
-            ("frontend_state_management", frontend_state_management_content()),
+            (
+                "frontend_hook_guidelines",
+                frontend_hook_guidelines_content(),
+            ),
+            (
+                "frontend_component_guidelines",
+                frontend_component_guidelines_content(),
+            ),
+            (
+                "frontend_quality_guidelines",
+                frontend_quality_guidelines_content(),
+            ),
+            (
+                "frontend_state_management",
+                frontend_state_management_content(),
+            ),
         ];
         for (name, content) in templates {
             assert!(
@@ -172,8 +198,14 @@ mod tests {
     fn test_guides_templates_non_empty() {
         let templates: Vec<(&str, &str)> = vec![
             ("guides_index", guides_index_content()),
-            ("guides_cross_layer_thinking_guide", guides_cross_layer_thinking_guide_content()),
-            ("guides_code_reuse_thinking_guide", guides_code_reuse_thinking_guide_content()),
+            (
+                "guides_cross_layer_thinking_guide",
+                guides_cross_layer_thinking_guide_content(),
+            ),
+            (
+                "guides_code_reuse_thinking_guide",
+                guides_code_reuse_thinking_guide_content(),
+            ),
         ];
         for (name, content) in templates {
             assert!(

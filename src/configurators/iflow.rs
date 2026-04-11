@@ -31,17 +31,11 @@ pub fn collect_templates() -> HashMap<String, String> {
     let mut files = HashMap::new();
 
     for cmd in tmpl::get_all_commands() {
-        files.insert(
-            format!(".iflow/commands/hc/{}.md", cmd.name),
-            cmd.content,
-        );
+        files.insert(format!(".iflow/commands/hc/{}.md", cmd.name), cmd.content);
     }
 
     for agent in tmpl::get_all_agents() {
-        files.insert(
-            format!(".iflow/agents/{}.md", agent.name),
-            agent.content,
-        );
+        files.insert(format!(".iflow/agents/{}.md", agent.name), agent.content);
     }
 
     for hook in tmpl::get_all_hooks() {

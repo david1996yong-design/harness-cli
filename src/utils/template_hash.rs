@@ -367,7 +367,11 @@ mod tests {
         let tmp = tempfile::tempdir().unwrap();
         let hashes = HashMap::new();
         // File doesn't exist -> not modified.
-        assert!(!is_template_modified(tmp.path(), "nonexistent.txt", &hashes));
+        assert!(!is_template_modified(
+            tmp.path(),
+            "nonexistent.txt",
+            &hashes
+        ));
     }
 
     #[test]

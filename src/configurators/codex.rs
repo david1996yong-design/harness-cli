@@ -99,10 +99,7 @@ pub fn collect_templates() -> HashMap<String, String> {
     }
 
     for agent in tmpl::get_all_agents() {
-        files.insert(
-            format!(".codex/agents/{}.toml", agent.name),
-            agent.content,
-        );
+        files.insert(format!(".codex/agents/{}.toml", agent.name), agent.content);
     }
 
     for hook in tmpl::get_all_hooks() {
@@ -115,10 +112,7 @@ pub fn collect_templates() -> HashMap<String, String> {
     );
 
     let config = tmpl::get_config_template();
-    files.insert(
-        format!(".codex/{}", config.target_path),
-        config.content,
-    );
+    files.insert(format!(".codex/{}", config.target_path), config.content);
 
     files
 }

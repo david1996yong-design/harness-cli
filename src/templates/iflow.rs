@@ -88,8 +88,7 @@ pub fn get_all_hooks() -> Vec<HookTemplate> {
 
 /// Get the settings.json template.
 pub fn get_settings_template() -> SettingsTemplate {
-    let content =
-        get_embedded_file::<IflowTemplates>("settings.json").unwrap_or_default();
+    let content = get_embedded_file::<IflowTemplates>("settings.json").unwrap_or_default();
     SettingsTemplate {
         target_path: "settings.json".to_string(),
         content,

@@ -264,10 +264,7 @@ mod tests {
 
     #[test]
     fn test_current_task_file() {
-        assert_eq!(
-            constructed::CURRENT_TASK_FILE,
-            ".harness-cli/.current-task"
-        );
+        assert_eq!(constructed::CURRENT_TASK_FILE, ".harness-cli/.current-task");
     }
 
     #[test]
@@ -301,18 +298,22 @@ mod tests {
             constructed::WORKFLOW_GUIDE_FILE,
         ];
         for path in &paths {
-            assert!(
-                !path.contains('\\'),
-                "Path '{}' contains backslash",
-                path
-            );
+            assert!(!path.contains('\\'), "Path '{}' contains backslash", path);
         }
         // Also test dynamic paths.
         let ws = get_workspace_dir("test");
-        assert!(!ws.contains('\\'), "Workspace dir '{}' contains backslash", ws);
+        assert!(
+            !ws.contains('\\'),
+            "Workspace dir '{}' contains backslash",
+            ws
+        );
         let td = get_task_dir("test");
         assert!(!td.contains('\\'), "Task dir '{}' contains backslash", td);
         let ad = get_archive_dir();
-        assert!(!ad.contains('\\'), "Archive dir '{}' contains backslash", ad);
+        assert!(
+            !ad.contains('\\'),
+            "Archive dir '{}' contains backslash",
+            ad
+        );
     }
 }

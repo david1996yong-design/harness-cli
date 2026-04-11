@@ -57,10 +57,7 @@ pub fn scan(options: ScanOptions) -> Result<()> {
     create_kb_tech(&cwd)?;
 
     println!("{}", "\n  KB directory structure created!".green());
-    println!(
-        "{}",
-        "  Next steps:".dimmed()
-    );
+    println!("{}", "  Next steps:".dimmed());
     println!(
         "{}",
         "    - Run /hc:scan-kb to generate product knowledge (kb/prd/)".dimmed()
@@ -242,29 +239,25 @@ mod tests {
         assert!(dir.path().join(constructed::KB_TECH).exists());
 
         // Both should have index.md and _module-template.md
-        assert!(
-            dir.path()
-                .join(constructed::KB_PRD)
-                .join("index.md")
-                .exists()
-        );
-        assert!(
-            dir.path()
-                .join(constructed::KB_PRD)
-                .join("_module-template.md")
-                .exists()
-        );
-        assert!(
-            dir.path()
-                .join(constructed::KB_TECH)
-                .join("index.md")
-                .exists()
-        );
-        assert!(
-            dir.path()
-                .join(constructed::KB_TECH)
-                .join("_module-template.md")
-                .exists()
-        );
+        assert!(dir
+            .path()
+            .join(constructed::KB_PRD)
+            .join("index.md")
+            .exists());
+        assert!(dir
+            .path()
+            .join(constructed::KB_PRD)
+            .join("_module-template.md")
+            .exists());
+        assert!(dir
+            .path()
+            .join(constructed::KB_TECH)
+            .join("index.md")
+            .exists());
+        assert!(dir
+            .path()
+            .join(constructed::KB_TECH)
+            .join("_module-template.md")
+            .exists());
     }
 }

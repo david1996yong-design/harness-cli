@@ -24,10 +24,7 @@ fn adapt_skill_content_to_workflow(content: &str, workflow_names: &[String]) -> 
         )
         .replace(".agents/skills/", ".agent/workflows/")
         .replace("$<skill-name>", "/<workflow-name>")
-        .replace(
-            "Or open /skills and select it",
-            "Or type / and select it",
-        );
+        .replace("Or open /skills and select it", "Or type / and select it");
 
     // Replace individual skill references like `$start` with `/start`.
     // Also replace .agents/skills/<specific-name>/SKILL.md patterns.
