@@ -3,7 +3,7 @@
   "name": "fix-task-json-fields",
   "title": "brainstorm: 修复 task.json 状态字段异常",
   "description": "",
-  "status": "cancelled",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -34,7 +34,7 @@
       "action": "create-pr"
     }
   ],
-  "commit": null,
+  "commit": "cd3bb3c73455260ee26001bee207189df2f48450",
   "pr_url": null,
   "subtasks": [],
   "children": [],
