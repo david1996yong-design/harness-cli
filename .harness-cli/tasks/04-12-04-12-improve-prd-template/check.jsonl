@@ -1,0 +1,4 @@
+{"file": ".claude/commands/hc/finish-work.md", "reason": "Finish work checklist"}
+{"file": ".claude/commands/hc/check.md", "reason": "Code quality check spec"}
+{"file": ".harness-cli/scripts/common/task_store.py", "reason": "验证模板输出"}
+{"file": "embedded/templates/claude/commands/hc/brainstorm.md", "reason": "验证 brainstorm 模板一致性"}

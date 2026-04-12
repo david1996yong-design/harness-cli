@@ -60,7 +60,7 @@ Before any Q&A, ensure a task exists. If none exists, create one immediately.
 TASK_DIR=$(python3 ./.harness-cli/scripts/task.py create "brainstorm: <short goal>" --slug <auto>)
 ```
 
-Create/seed `prd.md` immediately with what you know:
+The task directory now includes an auto-generated `prd.md` with 7 core sections. Overwrite/seed it with what you know:
 
 ```markdown
 # brainstorm: <short goal>
@@ -90,16 +90,15 @@ Create/seed `prd.md` immediately with what you know:
 
 * [ ] <testable criterion>
 
-## Definition of Done (team quality bar)
-
-* Tests added/updated (unit/integration where appropriate)
-* Lint / typecheck / CI green
-* Docs/notes updated if behavior changes
-* Rollout/rollback considered if risky
-
 ## Out of Scope (explicit)
 
 * <what we will not do in this task>
+
+## Definition of Done
+
+- [ ] 测试已添加或更新
+- [ ] Lint / 类型检查通过
+- [ ] 如行为变更，文档已更新
 
 ## Technical Notes
 
