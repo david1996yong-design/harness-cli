@@ -57,7 +57,7 @@ Before any Q&A, ensure a task exists. If none exists, create one immediately.
 TASK_DIR=$(python3 ./.harness-cli/scripts/task.py create "brainstorm: <short goal>" --slug <auto>)
 ```
 
-Create/seed `prd.md` immediately with what you know:
+The task directory now includes an auto-generated `prd.md` with 7 core sections. Overwrite/seed it with what you know:
 
 ```markdown
 # brainstorm: <short goal>
@@ -87,16 +87,15 @@ Create/seed `prd.md` immediately with what you know:
 
 * [ ] <testable criterion>
 
-## Definition of Done (team quality bar)
-
-* Tests added/updated (unit/integration where appropriate)
-* Lint / typecheck / CI green
-* Docs/notes updated if behavior changes
-* Rollout/rollback considered if risky
-
 ## Out of Scope (explicit)
 
 * <what we will not do in this task>
+
+## Definition of Done
+
+- [ ] 测试已添加或更新
+- [ ] Lint / 类型检查通过
+- [ ] 如行为变更，文档已更新
 
 ## Technical Notes
 
@@ -404,7 +403,7 @@ python3 ./.harness-cli/scripts/task.py add-subtask "$TASK_DIR" "$CHILD_DIR"
 
 ## PRD Target Structure (final)
 
-`prd.md` should converge to:
+`prd.md` should converge to the 7 core sections plus brainstorm advanced sections:
 
 ```markdown
 # <Task Title>
@@ -421,25 +420,31 @@ python3 ./.harness-cli/scripts/task.py add-subtask "$TASK_DIR" "$CHILD_DIR"
 
 * [ ] ...
 
-## Definition of Done
+## Out of Scope
 
 * ...
 
-## Technical Approach
+## Definition of Done
 
-<key design + decisions>
+- [ ] 测试已添加或更新
+- [ ] Lint / 类型检查通过
+- [ ] 如行为变更，文档已更新
 
 ## Decision (ADR-lite)
 
 Context / Decision / Consequences
 
-## Out of Scope
+## Technical Approach
 
-* ...
+<key design + decisions>
 
 ## Technical Notes
 
 <constraints, references, files, research notes>
+
+## 相关模块参考
+
+{auto-pulled from kb/prd/index.md}
 ```
 
 ---

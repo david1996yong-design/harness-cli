@@ -79,6 +79,107 @@ def ensure_tasks_dir(repo_root: Path) -> Path:
     return tasks_dir
 
 
+def _read_kb_section(repo_root: Path) -> str:
+    """Read kb/prd/index.md and extract module table for PRD reference."""
+    kb_index = repo_root / DIR_WORKFLOW / "kb" / "prd" / "index.md"
+    if not kb_index.is_file():
+        return ""
+
+    try:
+        content = kb_index.read_text(encoding="utf-8")
+    except OSError:
+        return ""
+
+    # Extract the table under "## 文档索引"
+    lines = content.splitlines()
+    in_table = False
+    table_lines: list[str] = []
+    for line in lines:
+        if line.strip().startswith("## 文档索引"):
+            in_table = True
+            continue
+        if in_table:
+            # Stop at next heading or end of file
+            if line.strip().startswith("## ") or line.strip().startswith("<!-- "):
+                break
+            if line.strip():
+                table_lines.append(line)
+
+    if not table_lines:
+        return ""
+
+    return "\n".join(table_lines)
+
+
+def _generate_prd(
+    title: str,
+    description: str,
+    repo_root: Path,
+    source_prd: str | None = None,
+) -> str:
+    """Generate PRD content with 7 core sections.
+
+    Args:
+        title: Task title.
+        description: Task description (fills Goal section).
+        repo_root: Repository root for reading kb/prd/index.md.
+        source_prd: If provided, use this content directly instead of template.
+
+    Returns:
+        PRD markdown content.
+    """
+    if source_prd:
+        return source_prd
+
+    # Build Goal section content
+    goal_content = description if description else "（说明为什么做 + 做什么）"
+
+    # Build kb reference section
+    kb_table = _read_kb_section(repo_root)
+    if kb_table:
+        kb_section = f"""## 相关模块参考
+
+以下为项目已有的业务模块（来自 `kb/prd/index.md`），请标注本任务涉及的模块：
+
+{kb_table}
+"""
+    else:
+        kb_section = """## 相关模块参考
+
+（项目暂无 `kb/prd/index.md`，可运行 `/hc:scan-kb` 生成业务知识库）
+"""
+
+    return f"""# {title}
+
+## Goal
+
+{goal_content}
+
+## Requirements
+
+- [ ] （请填写具体需求）
+
+## Acceptance Criteria
+
+- [ ] （请填写验收条件）
+
+## Out of Scope
+
+（明确列出本任务不做的事情，防止范围蔓延）
+
+## Definition of Done
+
+- [ ] 测试已添加或更新
+- [ ] Lint / 类型检查通过
+- [ ] 如行为变更，文档已更新
+
+## Technical Notes
+
+（相关文件路径、技术约束、参考链接）
+
+{kb_section}"""
+
+
 # =============================================================================
 # Command: create
 # =============================================================================
@@ -203,10 +304,20 @@ def cmd_create(args: argparse.Namespace) -> int:
 
                 print(colored(f"Linked as child of: {parent_dir.name}", Colors.GREEN), file=sys.stderr)
 
+    # Generate prd.md (only if it doesn't already exist)
+    prd_path = task_dir / "prd.md"
+    if not prd_path.is_file():
+        prd_content = _generate_prd(
+            title=args.title,
+            description=args.description or "",
+            repo_root=repo_root,
+        )
+        prd_path.write_text(prd_content, encoding="utf-8")
+
     print(colored(f"Created task: {dir_name}", Colors.GREEN), file=sys.stderr)
     print("", file=sys.stderr)
     print(colored("Next steps:", Colors.BLUE), file=sys.stderr)
-    print("  1. Create prd.md with requirements", file=sys.stderr)
+    print("  1. Fill in prd.md with detailed requirements", file=sys.stderr)
     print("  2. Run: python3 task.py init-context <dir> <dev_type>", file=sys.stderr)
     print("  3. Run: python3 task.py start <dir>", file=sys.stderr)
     print("", file=sys.stderr)

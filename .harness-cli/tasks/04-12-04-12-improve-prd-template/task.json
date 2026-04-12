@@ -1,0 +1,47 @@
+{
+  "id": "04-12-improve-prd-template",
+  "name": "04-12-improve-prd-template",
+  "title": "brainstorm: 优化 PRD 模板 — 对齐业界最佳实践",
+  "description": "",
+  "status": "planning",
+  "dev_type": "backend",
+  "scope": "harness-cli",
+  "package": null,
+  "priority": "P2",
+  "creator": "david1996yong",
+  "assignee": "david1996yong",
+  "createdAt": "2026-04-12",
+  "completedAt": null,
+  "branch": "feature/improve-prd-template",
+  "base_branch": "master",
+  "worktree_path": "/home/zy/harness-cli-worktrees/feature/improve-prd-template",
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "implement"
+    },
+    {
+      "phase": 2,
+      "action": "check"
+    },
+    {
+      "phase": 3,
+      "action": "finish"
+    },
+    {
+      "phase": 4,
+      "action": "direct-merge"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {},
+  "merge_mode": "direct",
+  "merge_target": "master"
+}
