@@ -3,7 +3,7 @@
   "name": "rescan-prd-kb",
   "title": "扫描更新产品知识库 (kb/prd)",
   "description": "",
-  "status": "cancelled",
+  "status": "completed",
   "dev_type": "backend",
   "scope": "rescan-prd-kb",
   "package": null,
@@ -34,7 +34,7 @@
       "action": "direct-merge"
     }
   ],
-  "commit": null,
+  "commit": "3c9acfa33f5e27fd7c1d573b4b58bb3e3dc3118b",
   "pr_url": null,
   "subtasks": [],
   "children": [],
