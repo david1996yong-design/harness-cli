@@ -11,7 +11,7 @@
   "creator": "david1996yong",
   "assignee": "david1996yong",
   "createdAt": "2026-04-12",
-  "completedAt": null,
+  "completedAt": "2026-04-13",
   "branch": "feature/improve-prd-template",
   "base_branch": "master",
   "worktree_path": "/home/zy/harness-cli-worktrees/feature/improve-prd-template",
@@ -34,7 +34,7 @@
       "action": "direct-merge"
     }
   ],
-  "commit": null,
+  "commit": "73e1db5a1d3fb5d0856bd6b4948bb25281479f98",
   "pr_url": null,
   "subtasks": [],
   "children": [],
