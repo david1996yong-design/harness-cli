@@ -3,7 +3,7 @@
   "name": "kb-tech-layer",
   "title": "brainstorm: KB 新增 tech 系统架构知识库",
   "description": "",
-  "status": "planning",
+  "status": "completed",
   "dev_type": "backend",
   "scope": "kb-system",
   "package": null,
@@ -11,11 +11,11 @@
   "creator": "david1996yong",
   "assignee": "david1996yong",
   "createdAt": "2026-04-10",
-  "completedAt": null,
+  "completedAt": "2026-04-10",
   "branch": "feature/kb-tech-layer",
   "base_branch": "master",
   "worktree_path": "/home/zy/harness-cli-worktrees/feature/kb-tech-layer",
-  "current_phase": 0,
+  "current_phase": 4,
   "next_action": [
     {
       "phase": 1,

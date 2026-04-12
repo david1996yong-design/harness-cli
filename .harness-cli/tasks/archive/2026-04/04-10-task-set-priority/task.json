@@ -15,7 +15,7 @@
   "branch": "feature/task-set-priority",
   "base_branch": "master",
   "worktree_path": "/home/zy/harness-cli-worktrees/feature/task-set-priority",
-  "current_phase": 0,
+  "current_phase": 4,
   "next_action": [
     {
       "phase": 1,
