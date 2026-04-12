@@ -3,7 +3,7 @@
   "name": "improve-prd-iteration-history",
   "title": "brainstorm: 改进 PRD 模板以支持历史迭代引用",
   "description": "",
-  "status": "cancelled",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -34,7 +34,7 @@
       "action": "create-pr"
     }
   ],
-  "commit": null,
+  "commit": "eea7d6b0cd4e2bd5d9bf65d0d60894d41d76b764",
   "pr_url": null,
   "subtasks": [],
   "children": [],
