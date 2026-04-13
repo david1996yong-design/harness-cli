@@ -500,7 +500,7 @@ dependencies = [
 
 [[package]]
 name = "harness-cli"
-version = "0.4.0-beta.8"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
