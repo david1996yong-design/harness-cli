@@ -99,6 +99,12 @@ enum Commands {
         force: bool,
     },
 
+    /// Check environment and project health
+    Doctor {},
+
+    /// Show project status at a glance
+    Status {},
+
     /// Update harness-cli configuration and commands to latest version
     Update {
         #[arg(long, help = "Preview changes without applying them")]
@@ -242,6 +248,12 @@ fn main() {
             })
         }
         Commands::Scan { force } => commands::scan::scan(commands::scan::ScanOptions { force }),
+        Commands::Doctor {} => {
+            commands::doctor::doctor(commands::doctor::DoctorOptions {})
+        }
+        Commands::Status {} => {
+            commands::status::status(commands::status::StatusOptions {})
+        }
         Commands::Update {
             dry_run,
             force,
