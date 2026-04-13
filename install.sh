@@ -2,9 +2,9 @@
 set -euo pipefail
 
 # Harness CLI installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/david1996yong-design/harness-cli/master/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/david1996yong-design/harness-cli-releases/master/install.sh | bash
 
-REPO="david1996yong-design/harness-cli"
+REPO="david1996yong-design/harness-cli-releases"
 BINARY="harness-cli"
 INSTALL_DIR="${HARNESS_INSTALL_DIR:-$HOME/.local/bin}"
 
