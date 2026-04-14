@@ -57,6 +57,10 @@ def _load_config(repo_root):
 
 **multi_agent 脚本的错误处理**: 失败时显式 `log_error(...)` + `return 1`，让调用方（subprocess）通过 exit code 判断。无异常栈传播给 AI agent
 
+**KB Status Gate 的错误路径** (task_store.py `cmd_archive`): 归档前读 task.json 的 `kb_status`；若为 `needed` 立即打印红色 `Error: cannot archive '<name>' — kb_status is 'needed'` + 两条修复路径指引，返回 exit 1，**硬阻塞**（不像其他 Python 错误多是 soft degradation）。这是有意为之：KB 漂移是产品级风险，不能 silent pass。
+
+**Task 生命周期副作用的错误隔离** (`_auto_record_session` in task.py): session 记录（step 1）和全局索引刷新（step 2）用**各自独立**的 try/except 包裹（step 2 的 catch 在 `refresh_global_workspace_index` 内部），一方失败不会影响另一方。两处都 catch `(Exception, SystemExit)` —— `SystemExit` 来自 `ensure_developer()` 未初始化时的 `sys.exit`，若不 catch 会穿透 `finish` 流程导致 `.current-task` 无法清除、用户卡死。
+
 ---
 
 ## 日志管道
@@ -188,8 +192,11 @@ def _load_config(repo_root):
 | worktree | common/worktree.py | worktree.yaml 加载 + 简单 YAML 解析器 |
 | cli_adapter | common/cli_adapter.py | 平台适配（见下） |
 | registry | common/registry.py | registry.json 的 CRUD（`registry_add_agent`, `registry_remove_agent`, `registry_list_agents`） |
-| task_store | common/task_store.py | 任务 CRUD：`cmd_create`, `cmd_archive`, `cmd_finish`, `cmd_list`, `cmd_status` 等 |
-| task_utils | common/task_utils.py | 任务查找辅助（`find_task`, `resolve_task_dir`） |
+| task_store | common/task_store.py | 任务 CRUD：`cmd_create`, `cmd_archive`, `cmd_set_branch`, `cmd_set_scope`, `cmd_mark_kb`, `cmd_add_subtask`, `cmd_remove_subtask` |
+| task.py (CLI 入口) | scripts/task.py | `cmd_start` / `cmd_finish` / `cmd_list` / `cmd_status` / `cmd_list_archive` / `cmd_create_pr` / `_auto_record_session` 位于此 —— 与 `task_store` 的划分：`task_store` 管数据写入，`task.py` 管生命周期编排 |
+| task_utils | common/task_utils.py | 任务查找辅助（`find_task_by_name`, `resolve_task_dir`）；生命周期钩子（`run_task_hooks`）；**`refresh_global_workspace_index(repo_root)`** —— 全局 workspace/index.md 刷新的统一入口，供 `finish` / `archive` 调用，包含非阻塞 try/except（catches Exception + SystemExit） |
+| add_session | scripts/add_session.py (非 common/) | Journal + 个人 index 写入；`add_session_from_task(task_json, auto_commit=False)` 供 `_auto_record_session` 调用；`main()` 处理 CLI 手动模式（默认 `auto_commit=True`） |
+| update_workspace_index | scripts/update_workspace_index.py (非 common/) | 全局 Active Developers 表刷新；状态按 `_STATUS_LIFECYCLE_ORDER`（planning→in_progress→review→completed）排列，未知状态字母序追加 |
 | phase | common/phase.py | 阶段管理（`get_phase_for_action`, `advance_phase`） |
 | types | common/types.py | TaskData TypedDict + TaskInfo dataclass |
 | developer | common/developer.py | 开发者身份管理（读写 `.developer`） |

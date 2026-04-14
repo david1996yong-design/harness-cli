@@ -35,13 +35,17 @@
 | commands::init | 三大子命令之一：初始化 `.harness-cli` 结构 + 配置 AI 平台 | src/commands/init.rs (src/main.rs:230-253) |
 | commands::scan | 创建 KB (知识库) 目录结构 `.harness-cli/kb/{prd,tech}/` | src/commands/scan.rs (src/main.rs:255) |
 | commands::update | 跨版本升级 + 文件迁移 | src/commands/update.rs (src/main.rs:256-270) |
+| commands::doctor | 环境诊断：git / python / .harness-cli 完整性 / AI 平台配置，彩色通过/失败/警告报告 | src/commands/doctor.rs |
+| commands::status | 项目快照：版本 / 类型 / 开发者 / 活跃任务 / spec 层 / KB 文件 / git 分支与脏状态 | src/commands/status.rs |
 | configurators | 13 个平台的 configurator，按 platform 分发部署 | src/configurators/mod.rs:100-116 |
 | templates (API 层) | 强类型封装 rust-embed，暴露 get_all_commands/agents/hooks/settings | src/templates/claude.rs:37-52 |
 | templates (资源层) | 实际的 Markdown/JSON/Python 文件，按平台分目录 | embedded/templates/{platform}/ |
 | types::ai_tools | AITool 枚举 + AIToolConfig 注册表 (13 平台) | src/types/ai_tools.rs:14-29, 182-199 |
 | migrations | 跨版本迁移引擎（rename/delete/safe-file-delete） | src/migrations/mod.rs |
 | utils | project_detector / template_fetcher / template_hash / file_writer | src/utils/mod.rs |
-| Python task.py | 任务 CRUD（create / archive / list / status / finish） | .harness-cli/scripts/task.py |
+| Python task.py | 任务 CRUD（create / archive / list / status / finish / mark-kb） + `_auto_record_session` orchestrator | .harness-cli/scripts/task.py |
+| Python add_session.py | Journal + 个人 index 写入；两种模式：`--title` 手动、`--from-task` 自动（从 task.json 抽取 title/branch/commits/summary） | .harness-cli/scripts/add_session.py |
+| Python update_workspace_index.py | 全局 workspace/index.md 的 Active Developers 表刷新；被 `refresh_global_workspace_index` helper 调用 | .harness-cli/scripts/update_workspace_index.py |
 | Python multi_agent::plan | 规划阶段：启动 Plan Agent 产出 task.json | .harness-cli/scripts/multi_agent/plan.py |
 | Python multi_agent::start | 调度阶段：创建 worktree + 启动 Dispatch Agent | .harness-cli/scripts/multi_agent/start.py |
 | Python multi_agent::direct_merge | 完成阶段：commit + merge 到 target branch | .harness-cli/scripts/multi_agent/direct_merge.py |
@@ -63,7 +67,12 @@
 - 输入：`cargo` 编译 → 单一二进制；用户通过 shell 调用 `harness-cli <subcommand>`
 - 输出：在当前目录下生成/更新 `.harness-cli/`、`.claude/`、`.cursor/` 等平台配置目录
 - 运行时输入：task.json（任务生命周期）、config.yaml（项目配置）、worktree.yaml（并行配置）
-- 运行时输出：Git worktree、feature branch、PR URL、归档任务目录
+- 运行时输出：Git worktree、feature branch、PR URL、归档任务目录、`workspace/{dev}/journal-N.md` 与两层 index.md（自动维护）
+
+**任务完成 ceremony**（push-based 生命周期副作用；详见 ADR-015）
+- `task.py finish` 触发 `_auto_record_session`：两步副作用（session 记录 + 全局索引刷新），独立 try/except、非阻塞
+- `task.py archive` 触发 KB Status Gate + 全局索引刷新（归档任务自动从 Active Developers 表移除）
+- 这条链路把 session 记录从"pull-based 手动调用 /hc:record-session"改为"push-based 生命周期自动触发"
 
 **部署目标**
 - 开发者工作站（macOS / Linux / Windows）

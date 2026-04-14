@@ -237,3 +237,60 @@
 - **后果**:
   - ✅ 符合 Unix 传统习惯
   - ⚠ **已知 bug**：在非 TTY 环境（如子进程捕获 stdout）下，不传 `--yes` 会报 "not a terminal" 错误，需要显式传 `--yes --force`（在本次 init --claude 过程中遇到）
+
+---
+
+## ADR-014: task archive 强制 KB 状态 gate（kb_status 字段）
+
+- **状态**: 已采纳
+- **日期**: 2026-04-14
+- **背景**: 早期 `after_archive` hook 只是 `echo` 一条"请检查 KB"提醒，事实上被人和 AI 普遍忽略——journal 与 KB 在多次 task archive 后持续漂移。需要一种结构性手段强制每次 archive 都明确声明"KB 是否同步"。
+- **选项**:
+  1. **软提醒**（现状延续）：在 `after_archive` hook 打印提示，由人判断是否需要 `/hc:scan-kb`。
+  2. **基于文件路径的自动判断**：扫描 task 关联的 commits 改动文件，落在业务代码路径（`src/`、`embedded/` 等）白名单则要求 KB 更新。
+  3. **三态字段 + archive gate**（现选）：在 task.json 加 `kb_status` 三态字段（`needed` / `updated` / `not_required`），`archive` 命令硬阻塞当值为 `needed`；由 AI/用户通过 `task.py mark-kb` 显式流转状态。
+- **决定**: 方案 3
+- **理由**:
+  - 方案 1 已被证明失效（改动前本仓库 journal 和 KB 都处于严重漂移状态）
+  - 方案 2 的路径白名单天然脆弱（一次重构就可能漏判；测试目录 vs 业务目录的边界不清晰；跨语言项目更难处理）
+  - 方案 3 把"是否需要更新 KB"这个**模型判断**放回模型——AI 在 `/hc:finish-work` 或 `/hc:scan-kb` 环节自己决定 task 的 `kb_status` 应为 `updated` 还是 `not_required`
+- **实现**:
+  - 字段：`task.json.kb_status`（默认 `needed`，见 `cmd_create` 在 task_store.py）
+  - CLI：`task.py mark-kb <status> [<task>]`（接受连字符形式 `not-required` 并规范化）
+  - Gate：`cmd_archive` 起始处读 `kb_status`，若为 `needed` 打印错误 + exit 1
+  - Legacy 兼容：`pre_data.get("kb_status", "needed")` 兜底，旧任务也被 gate
+- **后果**:
+  - ✅ 结构性保证 KB 与代码不漂移
+  - ✅ 判断逻辑归给模型，避免硬规则维护
+  - ⚠ 增加用户学习成本（需要知道 `mark-kb` 命令）
+  - ⚠ 没有逃生阀（无 `--force`），紧急情况下只能手动编辑 task.json（这是刻意决定：逃生阀会被滥用）
+
+---
+
+## ADR-015: Session 记录从 pull-based 改为 push-based（task.finish 自动触发）
+
+- **状态**: 已采纳
+- **日期**: 2026-04-13
+- **背景**: 早期设计是 pull-based：用户/AI 需要主动跑 `/hc:record-session` → `add_session.py --title ... --commit ...`。实际效果是**没人跑**：journal 文件永远是空的，workspace/{dev}/index.md 和全局 workspace/index.md 都无数据。这是个设计失败。
+- **选项**:
+  1. **保留 pull-based，加强提示**：在 `/hc:finish-work` 命令里更醒目地提醒运行 `/hc:record-session`。
+  2. **Cron / 定时扫描**：周期性扫描 git log 推断 session。
+  3. **Git post-commit hook**：每次 commit 触发 session 记录。
+  4. **Task 生命周期事件 push**（现选）：`task.py finish` 时自动调用 session 记录 + 全局 index 刷新；`task.py archive` 时只刷新全局 index（session 在 finish 时已记录）。
+- **决定**: 方案 4
+- **理由**:
+  - 方案 1 只是"加强提醒"，没有改变"用户必须记住去跑"的根本问题——证据是本仓库在做这个 ADR 之前就已经有多次"忘记手动记录"的累积
+  - 方案 2 侵入性强，周期性任务难以在多环境稳定运行（CI / 多机协作）
+  - 方案 3 粒度太细：不是每次 commit 都对应一次有意义的 session；会产生噪音
+  - 方案 4 粒度刚好：**task 是有语义的工作单元**，它的完成/归档是自然的"记录节点"
+- **实现**:
+  - Orchestrator: `_auto_record_session(task_json_path, repo_root)`（位于 task.py，不在 task_store.py）
+  - 两步副作用：session 记录（`add_session_from_task`）+ 全局索引刷新（`refresh_global_workspace_index`），相互独立 try/except
+  - SystemExit 必须被捕获（因 `ensure_developer` 未初始化时 `sys.exit`）
+  - 非阻塞：任一副作用失败只打印 `[WARN]`，不中断 `finish` / `archive` 主流程
+  - `auto_commit=False`（finish 路径），与 CLI 手动路径的 `auto_commit=True` 相反
+- **后果**:
+  - ✅ journal 与 index 从死文件变为活文件（实测：从 0 session 变成多 session 自动累积）
+  - ✅ 开发者无需记住额外命令
+  - ⚠ `finish` 执行开销略有增加（两个子副作用），但都在毫秒级
+  - ⚠ 失败是静默的（只打 warn），需通过日志观察而非阻塞式报错——这是刻意设计（不能让索引写不动拦住 finish）

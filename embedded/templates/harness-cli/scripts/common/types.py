@@ -45,6 +45,7 @@ class TaskData(TypedDict, total=False):
     next_action: list[dict]
     commit: str | None
     pr_url: str | None
+    kb_status: str  # "needed" | "updated" | "not_required" — gates archive
     subtasks: list[str]
     children: list[str]
     parent: str | None

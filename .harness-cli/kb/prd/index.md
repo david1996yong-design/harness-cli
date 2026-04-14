@@ -31,6 +31,8 @@
 | `project-detection.md` | 项目检测：自动识别项目类型（Frontend/Backend/Fullstack）和 monorepo 结构 |
 | `version-management.md` | 版本管理：完整 semver 比较、版本常量和路径常量体系 |
 | `template-fetcher.md` | 远程模板获取：从 GitHub/GitLab/自托管 registry 下载模板并追踪哈希 |
-| `kb-system.md` | 知识库系统：创建 kb/prd 和 kb/tech 目录骨架，承载 AI 命令接口 |
+| `kb-system.md` | 知识库系统：创建 kb/prd 和 kb/tech 目录骨架，承载 AI 命令接口；拥有 KB Status Gate 完整叙事（archive 阻塞机制） |
+| `task-lifecycle.md` | 任务生命周期：Python 运行时工作流的核心，涵盖 create/start/finish/archive 四个动作与 task.json schema |
+| `session-recording.md` | 会话记录系统：`finish`/`archive` 自动触发的日志与索引三层文件维护，包含 `_auto_record_session` 完整流程 |
 
 <!-- 以上由 scan-kb 自动生成 -->

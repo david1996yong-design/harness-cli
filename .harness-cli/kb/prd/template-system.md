@@ -63,6 +63,8 @@
 - **业务规则**: 使用 `md_template!` 宏生成静态访问器函数，通过 `OnceLock` 缓存内容
 - **触发条件**: scan 命令或 init 命令需要写入文档模板时
 - **处理流程**: 首次访问时从 `MarkdownTemplates` 读取，缓存到 `OnceLock` 静态变量
+- **workspace-index.md 模板**：`embedded/templates/markdown/workspace-index.md` 是全局开发者索引的模板源，在项目 init 时部署为 `.harness-cli/workspace/index.md`。该模板已简化（移除过时的"Getting Started"引导段，只保留 Active Developers 自动表格区段和目录结构说明）——实际内容维护由运行时脚本 `update_workspace_index.py` 负责（详见 [session-recording.md](./session-recording.md)）
+- **runtime ↔ embedded 同步约定**：`embedded/templates/harness-cli/scripts/*` 下的 Python 脚本是运行时副本 `.harness-cli/scripts/*` 的模板源，二者应保持一致。历史上本地运行时副本曾领先于 embedded（`_promote_status_on_start` 等改进先在 `.harness-cli/scripts/` 落地），需要在相关特性 commit 中一并同步
 
 ### Antigravity 内容适配
 

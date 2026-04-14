@@ -6,13 +6,15 @@
 ┌──────────────────────────────────────────────────────────────────┐
 │                     harness-cli (Rust binary)                     │
 │                                                                    │
-│   src/main.rs  ──┬── commands::init  ──┬── configurators::*       │
-│                  │                     │   └── templates::{plat}  │
-│                  │                     │       └── rust-embed     │
-│                  │                     │           └── embedded/  │
-│                  ├── commands::scan    │                           │
-│                  └── commands::update ─┴── migrations::*           │
-│                                            └── embedded/manifests/│
+│   src/main.rs  ──┬── commands::init    ──┬── configurators::*     │
+│                  │                       │   └── templates::{plat}│
+│                  │                       │       └── rust-embed   │
+│                  │                       │           └── embedded/│
+│                  ├── commands::scan      │                         │
+│                  ├── commands::doctor    │  (环境诊断只读)          │
+│                  ├── commands::status    │  (项目快照只读)          │
+│                  └── commands::update  ──┴── migrations::*         │
+│                                              └── embedded/manifests/│
 │                                                                    │
 │   utils::{project_detector, template_fetcher, template_hash,      │
 │           file_writer, compare_versions}                           │
@@ -27,6 +29,12 @@
 │                                                                    │
 │   scripts/                                                         │
 │     ├── task.py ──────────────┐                                    │
+│     │  (cmd_finish 触发                                            │
+│     │   add_session + refresh                                      │
+│     │   global workspace index)                                    │
+│     │                         │                                    │
+│     ├── add_session.py ───────┤ (journal + 个人 index)             │
+│     ├── update_workspace_index.py ┤ (全局 Active Developers 表)    │
 │     │                         │                                    │
 │     ├── multi_agent/          │                                    │
 │     │   ├── plan.py      ─────┤    共用 common/*                  │
@@ -156,12 +164,44 @@
                       └─ git merge (in main_repo_root)
                       └─ 更新 task.json status=completed
                       └─ 同步更新主仓库的 task.json（修复过的 bug）
+      └─ 用户 task.py finish
+          └─ _finalize_task_on_finish → task.json 字段回写
+          └─ _auto_record_session(task_json, repo_root)
+              ├─ add_session_from_task → journal + 个人 index
+              └─ refresh_global_workspace_index → 全局 Active Developers 表
+          └─ clear_current_task
+          └─ after_finish hook
+
       └─ 用户 /hc:archive → task.py archive <dir_name>
+          └─ KB Status Gate (task.json.kb_status 必须 ≠ needed 否则 exit 1)
+          └─ subtask 双向链接清理
           └─ 物理移动到 tasks/archive/YYYY-MM/
           └─ auto-commit "chore(task): archive <name>"
+          └─ refresh_global_workspace_index → 归档任务从全局表移除
 ```
 
-### 流 3：hook 注入流（运行时）
+### 流 3：KB 状态流转
+
+```
+task.py create → task.json.kb_status = "needed"（默认）
+      │
+      ▼
+   (开发过程中)
+      │
+      │   Path A: 任务涉及业务代码变更
+      │     └─ AI 运行 /hc:scan-kb 刷新 kb/prd/
+      │        └─ AI 顺手执行 task.py mark-kb updated <task>
+      │
+      │   Path B: 任务不影响 KB（docs-only / test / 重构）
+      │     └─ AI/用户 task.py mark-kb not-required <task>
+      ▼
+   kb_status ∈ {updated, not_required}
+      │
+      ▼
+   task.py archive → 通过 gate 放行
+```
+
+### 流 4：hook 注入流（运行时）
 
 ```
 Claude Code 启动会话

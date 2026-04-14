@@ -1,20 +1,24 @@
 # CLI 命令系统
 
-> 提供 harness-cli 的三个核心子命令：init、scan、update
+> 提供 harness-cli 二进制的五个核心子命令：init、scan、update、doctor、status
 
 ## 模块概述
 
-CLI 命令系统是 harness-cli 的入口层，负责解析命令行参数并调度对应的业务逻辑。使用 `clap` 库实现参数解析，通过 `Commands` 枚举定义三个子命令。启动时会检查项目版本与 CLI 版本的差异并提示用户升级。
+CLI 命令系统是 harness-cli 二进制的入口层，负责解析命令行参数并调度对应的业务逻辑。使用 `clap` 库实现参数解析，通过 `Commands` 枚举定义子命令。启动时会检查项目版本与 CLI 版本的差异并提示用户升级。
+
+> **注意区分**：本模块描述的是 Rust 二进制 `harness-cli <subcommand>`。项目内还有 Python 运行时脚本 `python3 .harness-cli/scripts/task.py <subcommand>`（含同名的 `status`、`finish`、`archive`、`mark-kb` 等子命令），两者是完全不同的入口，分属初始化期（Rust）和运行时（Python）。详见 [task-lifecycle.md](./task-lifecycle.md)。
 
 ## 关键文件
 
 | 文件路径 | 职责 |
 |----------|------|
 | `src/main.rs` | CLI 入口点，定义 `Cli` 和 `Commands` 枚举，实现启动时版本检查 `check_for_updates` |
-| `src/commands/mod.rs` | 命令模块导出（init、scan、update） |
+| `src/commands/mod.rs` | 命令模块导出（init、scan、update、doctor、status） |
 | `src/commands/init.rs` | `init` 命令实现：交互式设置项目，创建 `.harness-cli/` 工作流，配置平台，可选下载远程模板，创建 bootstrap 任务 |
 | `src/commands/scan.rs` | `scan` 命令实现：创建 `kb/prd/` 和 `kb/tech/` 目录并写入 index 和 module 模板 |
 | `src/commands/update.rs` | `update` 命令实现：比对模板哈希、分类变更、按冲突策略写入、执行迁移清单 |
+| `src/commands/doctor.rs` | `doctor` 命令实现：环境诊断（git / python / .harness-cli 完整性 / AI 平台配置），返回彩色通过/失败/警告报告 |
+| `src/commands/status.rs` | `status` 命令实现：项目快照（版本、项目类型、开发者身份、任务、spec 层、KB 存在性、git 分支与脏/净状态） |
 
 ## 核心功能
 
@@ -68,6 +72,30 @@ CLI 命令系统是 harness-cli 的入口层，负责解析命令行参数并调
   8. 可选执行版本范围内的迁移清单（`--migrate` 时或启动时确认）
   9. 更新 `.version` 和 `.template-hashes.json`
 
+### doctor 命令（Rust 二进制）
+
+- **业务规则**：对当前项目执行健康检查，覆盖 `git` / `python3` 版本、`.harness-cli/` 初始化完整性、`spec/`、`kb/`、`workspace/` 目录结构以及各 AI 平台配置的存在性
+- **触发条件**：用户运行 `harness-cli doctor`
+- **处理流程**：
+  1. 环境工具检查：`git --version`、`python3 --version`（缺失任一即 FAIL）
+  2. Harness 初始化检查：`.harness-cli/` 目录是否存在、`.version` 文件内容合法
+  3. 文件结构校验：spec/、workspace/、tasks/、kb/ 子目录
+  4. 版本一致性：`.version` vs CLI 内嵌版本
+  5. AI 平台配置审计：遍历 `.claude/`、`.cursor/` 等已注册平台目录
+  6. 按通过/失败/警告三色输出结果
+
+### status 命令（Rust 二进制）
+
+- **业务规则**：以快照形式呈现项目的"当前状态"——版本、项目类型、开发者身份、活跃任务、spec 层、KB 文件计数、git 分支与脏/净状态
+- **触发条件**：用户运行 `harness-cli status`
+- **处理流程**：
+  1. 要求 `.harness-cli/` 存在（否则友好提示先运行 init）
+  2. 读取 `.version`、`.developer`、`config.yaml` 获取元数据
+  3. 遍历 `tasks/`（不包括 `archive/`）列举活跃任务、高亮当前任务
+  4. 枚举 `spec/` 下的开发层（backend / frontend / fullstack）和 monorepo 包
+  5. 统计 `kb/prd/`、`kb/tech/` 文档数量
+  6. 读 `git branch --show-current` 与工作区脏/净状态
+
 ### 启动时版本检查
 
 - **业务规则**: 每次运行时检测 CLI 版本和项目版本差异，打印升级提示
@@ -83,7 +111,7 @@ CLI 命令系统是 harness-cli 的入口层，负责解析命令行参数并调
 
 ```
 用户输入 CLI 参数
-  -> clap 解析为 Commands 枚举（Init/Scan/Update）
+  -> clap 解析为 Commands 枚举（Init/Scan/Update/Doctor/Status）
   -> main.rs 将子命令参数转换为 Options 结构体
   -> 调度到 commands::{init,scan,update}::*()
   -> 命令函数调用 configurators/templates/utils 执行实际操作
@@ -101,6 +129,7 @@ CLI 命令系统是 harness-cli 的入口层，负责解析命令行参数并调
 - update 命令的 protected_paths 列表始终跳过：`workspace/`、`tasks/`、`spec/`、`.developer`、`.current-task`
 - update 命令的 `--create-new` 对冲突文件生成 `.new` 副本而不是直接覆盖
 - scan 命令要求 `.harness-cli/` 已存在，否则提示先运行 init
+- doctor 和 status 命令均要求 `.harness-cli/` 已存在（doctor 会显式将缺失判为 FAIL，status 会提示先 init）
 - 所有命令在启动时都会触发 `check_for_updates` 版本检查（仅当 `.harness-cli/` 存在）
 
 ## 与其他模块的关系

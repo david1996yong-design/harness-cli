@@ -76,6 +76,7 @@ pub struct SettingsTemplate {
 
 - **文件位置**: `.harness-cli/scripts/common/types.py:21-53`
 - **用途**: task.json 的 schema（权威定义）
+- **注意事项**: `TaskData` 使用 `total=False`，因此运行时 task.json 可以缺少 TypedDict 中声明的任何字段而不报错。历史上有过 TypedDict 与 `cmd_create` 实际写入字段漂移的情况（例如 `merge_mode` 等 `meta` 字段只在运行时出现）——请以 `cmd_create`（task_store.py）写入的默认对象作为"最完整的实际 schema"准绳
 
 ### Schema
 
@@ -101,6 +102,7 @@ pub struct SettingsTemplate {
 | next_action | list[dict] | 是 | 阶段数组，见下文 |
 | commit | str \| None | 否 | 最后一次 commit SHA |
 | pr_url | str \| None | 否 | 创建的 PR URL |
+| kb_status | str | 是 | `needed` / `updated` / `not_required`；archive 阻塞当值为 `needed`（详见 PRD 层 kb-system.md 的 KB Status Gate） |
 | subtasks | list[str] | 否 | 子任务 ID 列表 |
 | children | list[str] | 否 | 子任务目录名列表 |
 | parent | str \| None | 否 | 父任务 ID |
@@ -135,6 +137,9 @@ pub struct SettingsTemplate {
     {"phase": 3, "action": "finish"},
     {"phase": 4, "action": "create-pr"}
   ],
+  "commit": null,
+  "pr_url": null,
+  "kb_status": "needed",
   "subtasks": [],
   "children": [],
   "parent": null,

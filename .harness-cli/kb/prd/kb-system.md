@@ -56,6 +56,23 @@
 - **`decisions.md`**: 架构决策记录（ADR-lite 格式）
 - **`cross-cutting.md`**: 横切关注点 —— 错误处理、日志、配置、共享工具、中间件
 
+### KB Status Gate（archive 阻塞 + `mark-kb` 命令）
+
+- **总纲**：`kb_status` 是正交于 task 主状态（planning/in_progress/review/completed）的**独立状态维度**。主状态描述"任务做到哪一步了"，`kb_status` 描述"KB 跟上这个任务的改动了吗"。二者解耦，一个不决定另一个。
+- **字段位置**：`task.json` 的 `kb_status` 字段（三态枚举：`needed` | `updated` | `not_required`），新建任务默认 `needed`
+- **CLI**：`python3 .harness-cli/scripts/task.py mark-kb <status> [<task>]`
+  - `status` 接受连字符形式（`not-required`）会被规范化为 snake_case（`not_required`）
+  - `<task>` 省略时默认使用当前 current task
+  - 非法 status 立刻报错退出
+- **archive 阻塞规则**（实现位置：`.harness-cli/scripts/common/task_store.py` `cmd_archive`）：
+  1. 归档前读取 task.json 的 `kb_status`
+  2. 若为 `needed` → 打印错误并返回 exit 1，列出两条修复路径：
+     - **业务逻辑发生变更**：运行 `/hc:scan-kb` 刷新 `kb/prd/`，AI 应顺带把相关 task 的 `kb_status` 置 `updated`
+     - **任务不影响 KB**：运行 `task.py mark-kb not-required <task>`
+  3. 若为 `updated` 或 `not_required` → 放行
+- **Legacy 兼容**：旧任务（无 `kb_status` 字段）在读取时通过 `pre_data.get("kb_status", "needed")` 兜底为 `needed`，所以也会被阻塞（确保历史任务必须显式声明 KB 状态才能归档）
+- **不提供逃生阀**：没有 `--force`/`--skip-kb-check` 之类 flag。设计原因：判断"是否需要更新 KB"交给模型通过工作流决定，而非基于文件路径的自动白名单。详见 `kb/tech/decisions.md` 的 ADR-014。
+
 ### AI 命令接口
 
 - **`scan-kb`（AI 命令，文档引用但无独立命令文件）**:
@@ -105,6 +122,8 @@ harness-cli scan (CLI)
 - `kb/tech/index.md` 的固定 5 个文档在模板中硬编码，AI 扫描时只需填充简述而不增减条目
 - 增量更新 `kb/prd/` 时只修改与变更相关的内容，保留未受影响的部分（避免全量重写）
 - 增量更新只处理源码文件变更，跳过 `.md`、`.json`、`.gitignore` 等非源码变更
+- `kb_status` 是独立于 task 主状态的正交维度，两个字段互不决定（主状态由 start/finish 管理，`kb_status` 由 `mark-kb` 管理）
+- 任务归档强制要求 `kb_status ≠ needed`，这是 harness-cli 确保"代码改动后 KB 不漂移"的唯一结构性手段
 
 ## 与其他模块的关系
 
@@ -115,3 +134,4 @@ harness-cli scan (CLI)
 | file-management | 通过 `ensure_dir` 创建目录，通过 `write_file` 写入模板文件并处理已存在文件冲突 |
 | version-management | 使用 `constructed::KB_PRD` 和 `constructed::KB_TECH` 路径常量；`dir_names::KB`、`KB_PRD`、`KB_TECH` 也在 `paths.rs` 中定义 |
 | platform-configurators | `kb/prd/` 和 `kb/tech/` 属于 `all_managed_dirs()` 管理的目录范围（用于 update 命令的文件分类） |
+| task-lifecycle | `kb_status` 字段随 task.json 一起创建；archive 时 gate 阻塞（详见本文档「KB Status Gate」段） |
