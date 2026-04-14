@@ -352,12 +352,12 @@ fn collect_template_files(cwd: &Path) -> HashMap<String, String> {
 
     for file_path in list_files::<HarnessCliTemplates>() {
         if let Some(content) = get_embedded_file::<HarnessCliTemplates>(&file_path) {
-            // Scripts go under .harness-cli/scripts/
-            if file_path.ends_with(".py") || file_path.ends_with(".sh") {
-                files.insert(format!("{}/{}", constructed::SCRIPTS, file_path), content);
-            } else {
-                files.insert(format!("{}/{}", dir_names::WORKFLOW, file_path), content);
-            }
+            // file_path is already relative to .harness-cli/ (embed root is
+            // embedded/templates/harness-cli/), e.g. "scripts/common/task_store.py"
+            // or "workflow.md". A single uniform mapping keeps scripts/ prefix
+            // coming from the embed path itself — prefixing again produces a
+            // broken nested `scripts/scripts/` tree.
+            files.insert(format!("{}/{}", dir_names::WORKFLOW, file_path), content);
         }
     }
 
@@ -2048,4 +2048,52 @@ fn create_migration_task(
         "{}",
         "Use AI to help: Ask Claude/Cursor to read the task and fix your custom files.".dimmed()
     );
+}
+
+// =============================================================================
+// Tests
+// =============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Regression test for the path-doubling bug.
+    ///
+    /// Prior to the fix, `.py`/`.sh` embed paths like `scripts/common/task_store.py`
+    /// were prefixed with `.harness-cli/scripts/` (via `constructed::SCRIPTS`),
+    /// producing `.harness-cli/scripts/scripts/common/task_store.py` — a broken
+    /// nested tree that shadowed the real scripts directory and silently stopped
+    /// `harness-cli update` from updating any Python script.
+    ///
+    /// Asserts:
+    ///   1. No mapped key contains the substring `scripts/scripts/`.
+    ///   2. A known Python file (`task_store.py`) lands at the canonical path.
+    ///   3. A non-script top-level file (`workflow.md`) keeps the single-`.harness-cli/`
+    ///      prefix.
+    #[test]
+    fn test_collect_template_files_no_double_scripts() {
+        let tmp = tempfile::TempDir::new().expect("create tempdir");
+        let files = collect_template_files(tmp.path());
+
+        for key in files.keys() {
+            assert!(
+                !key.contains("scripts/scripts/"),
+                "path-doubling bug: key '{}' contains 'scripts/scripts/'",
+                key
+            );
+        }
+
+        assert!(
+            files.contains_key(".harness-cli/scripts/common/task_store.py"),
+            "task_store.py should map to .harness-cli/scripts/common/task_store.py; \
+             got keys = {:?}",
+            files.keys().collect::<Vec<_>>()
+        );
+
+        assert!(
+            files.contains_key(".harness-cli/workflow.md"),
+            "workflow.md should map to .harness-cli/workflow.md"
+        );
+    }
 }
