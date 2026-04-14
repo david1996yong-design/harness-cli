@@ -14,6 +14,7 @@ Usage:
     python3 task.py set-branch <dir> <branch>   # Set git branch
     python3 task.py set-base-branch <dir> <branch>  # Set PR target branch
     python3 task.py set-scope <dir> <scope>     # Set scope for PR title
+    python3 task.py mark-kb <status> [<task>]   # Set kb_status (needed|updated|not-required)
     python3 task.py create-pr [dir] [--dry-run] # Create PR from task
     python3 task.py archive <task-name>         # Archive completed task
     python3 task.py list [--detail]             # List active tasks
@@ -60,6 +61,7 @@ from common.task_store import (
     cmd_set_branch,
     cmd_set_base_branch,
     cmd_set_scope,
+    cmd_mark_kb,
     cmd_add_subtask,
     cmd_remove_subtask,
 )
@@ -551,6 +553,7 @@ Usage:
   python3 task.py finish                             Clear current task
   python3 task.py set-branch <dir> <branch>          Set git branch for multi-agent
   python3 task.py set-scope <dir> <scope>            Set scope for PR title
+  python3 task.py mark-kb <status> [<task>]          Set kb_status (needed|updated|not-required)
   python3 task.py create-pr [dir] [--dry-run]        Create PR from task
   python3 task.py archive <task-name>                Archive completed task
   python3 task.py add-subtask <parent> <child>       Link child task to parent
@@ -665,6 +668,21 @@ def main() -> int:
     p_scope.add_argument("dir", help="Task directory")
     p_scope.add_argument("scope", help="Scope name")
 
+    # mark-kb
+    p_markkb = subparsers.add_parser(
+        "mark-kb",
+        help="Set kb_status on a task (needed | updated | not-required)",
+    )
+    p_markkb.add_argument(
+        "status",
+        help="New kb_status value: needed | updated | not-required",
+    )
+    p_markkb.add_argument(
+        "task",
+        nargs="?",
+        help="Task name or dir (defaults to current task)",
+    )
+
     # create-pr
     p_pr = subparsers.add_parser("create-pr", help="Create PR")
     p_pr.add_argument("dir", nargs="?", help="Task directory")
@@ -717,6 +735,7 @@ def main() -> int:
         "set-branch": cmd_set_branch,
         "set-base-branch": cmd_set_base_branch,
         "set-scope": cmd_set_scope,
+        "mark-kb": cmd_mark_kb,
         "create-pr": cmd_create_pr,
         "archive": cmd_archive,
         "add-subtask": cmd_add_subtask,

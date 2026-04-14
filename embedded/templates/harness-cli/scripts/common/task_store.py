@@ -273,6 +273,7 @@ def cmd_create(args: argparse.Namespace) -> int:
         ],
         "commit": None,
         "pr_url": None,
+        "kb_status": "needed",
         "subtasks": [],
         "children": [],
         "parent": None,
@@ -359,6 +360,35 @@ def cmd_archive(args: argparse.Namespace) -> int:
 
     dir_name = task_dir.name
     task_json_path = task_dir / FILE_TASK_JSON
+
+    # KB status gate — block archive if task hasn't declared KB outcome.
+    # The AI (during finish/scan-kb) is responsible for flipping this field
+    # to "updated" or "not_required" using `task.py mark-kb`.
+    if task_json_path.is_file():
+        pre_data = read_json(task_json_path)
+        if pre_data:
+            kb_status = pre_data.get("kb_status", "needed")
+            if kb_status == "needed":
+                print(
+                    colored(
+                        f"Error: cannot archive '{dir_name}' — kb_status is 'needed'",
+                        Colors.RED,
+                    ),
+                    file=sys.stderr,
+                )
+                print("  KB must be resolved before archive. Choose one:", file=sys.stderr)
+                print(
+                    "    • If this task changed business logic: run /hc:scan-kb to "
+                    "refresh kb/prd/, then retry archive",
+                    file=sys.stderr,
+                )
+                print(
+                    f"    • If this task does not affect KB: run\n"
+                    f"      python3 .harness-cli/scripts/task.py mark-kb not-required {dir_name}\n"
+                    f"      and retry archive",
+                    file=sys.stderr,
+                )
+                return 1
 
     # Update status before archiving
     today = datetime.now().strftime("%Y-%m-%d")
@@ -648,6 +678,76 @@ def cmd_set_scope(args: argparse.Namespace) -> int:
     write_json(task_json, data)
 
     print(colored(f"✓ Scope set to: {scope}", Colors.GREEN))
+    return 0
+
+
+# =============================================================================
+# Command: mark-kb
+# =============================================================================
+
+_KB_STATUS_VALUES = {"needed", "updated", "not_required"}
+
+
+def cmd_mark_kb(args: argparse.Namespace) -> int:
+    """Set kb_status field on task.json.
+
+    Acceptable statuses:
+      - needed        : KB check still outstanding (default for new tasks)
+      - updated       : KB has been refreshed to reflect this task's changes
+      - not-required  : task doesn't affect KB (docs-only, typo fix, test tweak, etc.)
+
+    Archive is blocked until kb_status leaves 'needed'.
+    """
+    repo_root = get_repo_root()
+
+    # Normalize hyphenated CLI input to snake_case canonical value
+    raw_status = (args.status or "").strip().replace("-", "_")
+    if raw_status not in _KB_STATUS_VALUES:
+        print(
+            colored(
+                f"Error: invalid status '{args.status}'. "
+                f"Expected one of: needed | updated | not-required",
+                Colors.RED,
+            ),
+            file=sys.stderr,
+        )
+        return 1
+
+    # Resolve target task: explicit arg > current task
+    task_input = getattr(args, "task", None)
+    if task_input:
+        target_dir = resolve_task_dir(task_input, repo_root)
+    else:
+        current = get_current_task(repo_root)
+        if not current:
+            print(
+                colored(
+                    "Error: no task specified and no current task set. "
+                    "Pass <task-name> or run `task.py start <dir>` first.",
+                    Colors.RED,
+                ),
+                file=sys.stderr,
+            )
+            return 1
+        target_dir = repo_root / current
+
+    if not target_dir.is_dir():
+        print(colored(f"Error: task directory not found: {target_dir}", Colors.RED), file=sys.stderr)
+        return 1
+
+    task_json = target_dir / FILE_TASK_JSON
+    if not task_json.is_file():
+        print(colored(f"Error: task.json not found at {target_dir}", Colors.RED), file=sys.stderr)
+        return 1
+
+    data = read_json(task_json)
+    if not data:
+        return 1
+
+    data["kb_status"] = raw_status
+    write_json(task_json, data)
+
+    print(colored(f"✓ kb_status set to: {raw_status} ({target_dir.name})", Colors.GREEN))
     return 0
 
 
