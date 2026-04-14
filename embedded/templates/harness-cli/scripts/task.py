@@ -71,6 +71,7 @@ from common.task_context import (
     cmd_validate,
     cmd_list_context,
 )
+from common.weekly_report import generate_weekly_report
 
 
 # =============================================================================
@@ -513,6 +514,30 @@ def cmd_list_archive(args: argparse.Namespace) -> int:
 
 
 # =============================================================================
+# Command: weekly-report (personal weekly aggregation)
+# =============================================================================
+
+def cmd_weekly_report(args: argparse.Namespace) -> int:
+    """Generate this week's personal report and write to workspace/{dev}/reports/."""
+    try:
+        out_path, _ = generate_weekly_report(
+            week_arg=args.week,
+            dev_override=args.dev,
+        )
+    except Exception as e:
+        print(colored(f"Error: {e}", Colors.RED))
+        return 1
+
+    try:
+        rel = out_path.relative_to(get_repo_root())
+    except ValueError:
+        rel = out_path
+
+    print(colored(f"✓ Weekly report written: {rel}", Colors.GREEN))
+    return 0
+
+
+# =============================================================================
 # Command: create-pr (delegates to multi-agent script)
 # =============================================================================
 
@@ -562,6 +587,7 @@ Usage:
   python3 task.py list --detail                      List tasks with detailed info
   python3 task.py status [--mine] [--json]           Task status dashboard
   python3 task.py list-archive [YYYY-MM]             List archived tasks
+  python3 task.py weekly-report [--week YYYY-Www]    Generate personal weekly report
 
 Arguments:
   dev_type: backend | frontend | fullstack | test | docs
@@ -718,6 +744,14 @@ def main() -> int:
     p_listarch = subparsers.add_parser("list-archive", help="List archived tasks")
     p_listarch.add_argument("month", nargs="?", help="Month (YYYY-MM)")
 
+    # weekly-report
+    p_weekly = subparsers.add_parser(
+        "weekly-report",
+        help="Generate personal weekly report for the current ISO week",
+    )
+    p_weekly.add_argument("--week", help="ISO week, e.g. 2026-W15 (default: current week)")
+    p_weekly.add_argument("--dev", help="Developer name (default: current developer)")
+
     args = parser.parse_args()
 
     if not args.command:
@@ -743,6 +777,7 @@ def main() -> int:
         "list": cmd_list,
         "status": cmd_status,
         "list-archive": cmd_list_archive,
+        "weekly-report": cmd_weekly_report,
     }
 
     if args.command in commands:

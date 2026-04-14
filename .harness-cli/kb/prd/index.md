@@ -34,5 +34,6 @@
 | `kb-system.md` | 知识库系统：创建 kb/prd 和 kb/tech 目录骨架，承载 AI 命令接口；拥有 KB Status Gate 完整叙事（archive 阻塞机制） |
 | `task-lifecycle.md` | 任务生命周期：Python 运行时工作流的核心，涵盖 create/start/finish/archive 四个动作与 task.json schema |
 | `session-recording.md` | 会话记录系统：`finish`/`archive` 自动触发的日志与索引三层文件维护，包含 `_auto_record_session` 完整流程 |
+| `weekly-report.md` | 周报系统：`task.py weekly-report` 聚合任务/commits/journal/KB 变更，事实与 AI 总结解耦，周日/周一会话提示 |
 
 <!-- 以上由 scan-kb 自动生成 -->

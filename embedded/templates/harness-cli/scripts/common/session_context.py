@@ -368,6 +368,18 @@ def get_context_text(repo_root: Path | None = None) -> str:
     lines.append(f"Spec: {DIR_WORKFLOW}/{DIR_SPEC}/")
     lines.append("")
 
+    # Weekly report reminder (Sun/Mon only, when current week's report missing)
+    try:
+        from .weekly_report import should_remind_weekly_report
+        reminder = should_remind_weekly_report(repo_root)
+        if reminder:
+            lines.append("## WEEKLY REPORT")
+            lines.append(reminder)
+            lines.append("")
+    except Exception:
+        # Reminder is advisory; never break context generation on failure
+        pass
+
     lines.append("========================================")
 
     return "\n".join(lines)
