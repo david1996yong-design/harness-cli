@@ -14,7 +14,6 @@ Usage:
     python3 task.py set-branch <dir> <branch>   # Set git branch
     python3 task.py set-base-branch <dir> <branch>  # Set PR target branch
     python3 task.py set-scope <dir> <scope>     # Set scope for PR title
-    python3 task.py set-priority <dir> <P0|P1|P2|P3>  # Set task priority
     python3 task.py create-pr [dir] [--dry-run] # Create PR from task
     python3 task.py archive <task-name>         # Archive completed task
     python3 task.py list [--detail]             # List active tasks
@@ -30,6 +29,10 @@ import argparse
 import sys
 from pathlib import Path
 
+from datetime import datetime
+
+from common.git import run_git
+from common.io import read_json, write_json
 from common.log import Colors, colored
 from common.paths import (
     DIR_WORKFLOW,
@@ -42,7 +45,11 @@ from common.paths import (
     set_current_task,
     clear_current_task,
 )
-from common.task_utils import resolve_task_dir, run_task_hooks
+from common.task_utils import (
+    refresh_global_workspace_index,
+    resolve_task_dir,
+    run_task_hooks,
+)
 from common.tasks import iter_active_tasks, children_progress
 from common.types import TaskInfo
 
@@ -53,7 +60,6 @@ from common.task_store import (
     cmd_set_branch,
     cmd_set_base_branch,
     cmd_set_scope,
-    cmd_set_priority,
     cmd_add_subtask,
     cmd_remove_subtask,
 )
@@ -94,10 +100,13 @@ def cmd_start(args: argparse.Namespace) -> int:
 
     if set_current_task(task_dir, repo_root):
         print(colored(f"✓ Current task set to: {task_dir}", Colors.GREEN))
+
+        task_json_path = full_path / FILE_TASK_JSON
+        _promote_status_on_start(task_json_path)
+
         print()
         print(colored("The hook will now inject context from this task's jsonl files.", Colors.BLUE))
 
-        task_json_path = full_path / FILE_TASK_JSON
         run_task_hooks("after_start", task_json_path, repo_root)
         return 0
     else:
@@ -105,8 +114,111 @@ def cmd_start(args: argparse.Namespace) -> int:
         return 1
 
 
+def _promote_status_on_start(task_json_path: Path) -> None:
+    """Bump status planning → in_progress on `start` (idempotent)."""
+    if not task_json_path.is_file():
+        return
+    data = read_json(task_json_path)
+    if not isinstance(data, dict):
+        return
+    if data.get("status") == "planning":
+        data["status"] = "in_progress"
+        write_json(task_json_path, data)
+        print(colored("  status: planning → in_progress", Colors.DIM))
+
+
+def _finalize_task_on_finish(task_dir: Path, task_json_path: Path, repo_root: Path) -> None:
+    """Write completion fields on `finish` (idempotent).
+
+    - status → completed
+    - completedAt → today (if empty)
+    - commit → HEAD of worktree (or main repo, if no worktree)
+    - current_phase → len(next_action)
+    """
+    if not task_json_path.is_file():
+        return
+    data = read_json(task_json_path)
+    if not isinstance(data, dict):
+        return
+
+    changed = False
+
+    if data.get("status") != "completed":
+        data["status"] = "completed"
+        changed = True
+
+    if not data.get("completedAt"):
+        data["completedAt"] = datetime.now().strftime("%Y-%m-%d")
+        changed = True
+
+    # Resolve commit HEAD from worktree if available, else repo_root
+    if not data.get("commit"):
+        git_cwd = repo_root
+        wt = data.get("worktree_path")
+        if isinstance(wt, str) and wt:
+            wt_path = Path(wt)
+            if wt_path.is_dir():
+                git_cwd = wt_path
+        rc, out, _ = run_git(["rev-parse", "HEAD"], cwd=git_cwd)
+        if rc == 0 and out.strip():
+            data["commit"] = out.strip()
+            changed = True
+
+    # Advance current_phase to terminal value
+    next_action = data.get("next_action") or []
+    total = len(next_action) if isinstance(next_action, list) else 0
+    if total > 0 and (data.get("current_phase") or 0) < total:
+        data["current_phase"] = total
+        changed = True
+
+    if changed:
+        write_json(task_json_path, data)
+        print(colored(
+            f"  finalized: status=completed, phase={data.get('current_phase')}, commit={(data.get('commit') or '')[:8]}",
+            Colors.DIM,
+        ))
+
+
+def _auto_record_session(task_json_path: Path, repo_root: Path) -> None:
+    """Automatically record a session from the completed task.
+
+    Called by cmd_finish. For symmetry, cmd_archive only needs to call
+    refresh_global_workspace_index (the session was already recorded at finish time).
+
+    Two independent side-effects, isolated so one failure does not mask the other:
+      1. Session recording (journal + personal index.md) via add_session_from_task.
+         Wrapped in try/except here (catches Exception + SystemExit from
+         ensure_developer's sys.exit).
+      2. Global workspace index refresh via refresh_global_workspace_index.
+         The helper handles its own try/except internally.
+
+    Non-blocking: any failure prints a warning but does not interrupt the finish flow.
+    """
+    # Ensure scripts dir is on path for sibling imports (add_session is not in common/)
+    scripts_dir = str(Path(__file__).resolve().parent)
+    if scripts_dir not in sys.path:
+        sys.path.insert(0, scripts_dir)
+
+    # Step 1: record session to journal + personal index
+    try:
+        from add_session import add_session_from_task
+
+        print()
+        print(colored("Recording session...", Colors.BLUE))
+        rc = add_session_from_task(task_json_path, auto_commit=False)
+        if rc == 0:
+            print(colored("✓ Session auto-recorded to journal", Colors.GREEN))
+        else:
+            print(colored("⚠ Session recording skipped (non-fatal)", Colors.YELLOW))
+    except (Exception, SystemExit) as e:
+        print(colored(f"⚠ Session recording failed: {e}", Colors.YELLOW), file=sys.stderr)
+
+    # Step 2: refresh global workspace/index.md (Active Developers table)
+    refresh_global_workspace_index(repo_root)
+
+
 def cmd_finish(args: argparse.Namespace) -> int:
-    """Clear current task."""
+    """Clear current task and finalize status fields."""
     repo_root = get_repo_root()
     current = get_current_task(repo_root)
 
@@ -115,7 +227,14 @@ def cmd_finish(args: argparse.Namespace) -> int:
         return 0
 
     # Resolve task.json path before clearing
-    task_json_path = repo_root / current / FILE_TASK_JSON
+    task_dir = repo_root / current
+    task_json_path = task_dir / FILE_TASK_JSON
+
+    _finalize_task_on_finish(task_dir, task_json_path, repo_root)
+
+    # Auto-record session BEFORE clearing current task (task.json still accessible)
+    if task_json_path.is_file():
+        _auto_record_session(task_json_path, repo_root)
 
     clear_current_task(repo_root)
     print(colored(f"✓ Cleared current task (was: {current})", Colors.GREEN))
@@ -432,7 +551,6 @@ Usage:
   python3 task.py finish                             Clear current task
   python3 task.py set-branch <dir> <branch>          Set git branch for multi-agent
   python3 task.py set-scope <dir> <scope>            Set scope for PR title
-  python3 task.py set-priority <dir> <P0|P1|P2|P3>  Set task priority
   python3 task.py create-pr [dir] [--dry-run]        Create PR from task
   python3 task.py archive <task-name>                Archive completed task
   python3 task.py add-subtask <parent> <child>       Link child task to parent
@@ -547,11 +665,6 @@ def main() -> int:
     p_scope.add_argument("dir", help="Task directory")
     p_scope.add_argument("scope", help="Scope name")
 
-    # set-priority
-    p_priority = subparsers.add_parser("set-priority", help="Set task priority")
-    p_priority.add_argument("dir", help="Task directory")
-    p_priority.add_argument("priority", help="Priority (P0|P1|P2|P3)")
-
     # create-pr
     p_pr = subparsers.add_parser("create-pr", help="Create PR")
     p_pr.add_argument("dir", nargs="?", help="Task directory")
@@ -604,7 +717,6 @@ def main() -> int:
         "set-branch": cmd_set_branch,
         "set-base-branch": cmd_set_base_branch,
         "set-scope": cmd_set_scope,
-        "set-priority": cmd_set_priority,
         "create-pr": cmd_create_pr,
         "archive": cmd_archive,
         "add-subtask": cmd_add_subtask,

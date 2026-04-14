@@ -101,14 +101,19 @@ def _get_last_active(dev_dir: Path) -> str:
     return "-"
 
 
+_STATUS_LIFECYCLE_ORDER = ("planning", "in_progress", "review", "completed")
+
+
 def _format_status_summary(tasks: list[dict]) -> str:
-    """汇总任务状态。
+    """汇总任务状态，按生命周期顺序排列。
+
+    顺序：planning → in_progress → review → completed → （未知状态按字母序）。
 
     Args:
         tasks: 任务列表。
 
     Returns:
-        状态汇总字符串，如 "2 in_progress, 1 planning"，无任务时返回 "-"。
+        状态汇总字符串，如 "1 planning, 2 in_progress"，无任务时返回 "-"。
     """
     if not tasks:
         return "-"
@@ -117,7 +122,14 @@ def _format_status_summary(tasks: list[dict]) -> str:
     for t in tasks:
         counter[t["status"]] += 1
 
-    parts = [f"{count} {status}" for status, count in sorted(counter.items())]
+    parts: list[str] = []
+    for status in _STATUS_LIFECYCLE_ORDER:
+        if counter.get(status):
+            parts.append(f"{counter[status]} {status}")
+    for status in sorted(counter.keys()):
+        if status not in _STATUS_LIFECYCLE_ORDER:
+            parts.append(f"{counter[status]} {status}")
+
     return ", ".join(parts)
 
 

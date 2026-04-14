@@ -46,6 +46,7 @@ from .paths import (
 from .task_utils import (
     archive_task_complete,
     find_task_by_name,
+    refresh_global_workspace_index,
     resolve_task_dir,
     run_task_hooks,
 )
@@ -420,6 +421,10 @@ def cmd_archive(args: argparse.Namespace) -> int:
         # Run hooks with the archived path
         archived_json = archive_dest / FILE_TASK_JSON
         run_task_hooks("after_archive", archived_json, repo_root)
+
+        # Refresh global workspace index — archived task should no longer appear
+        # in the Active Developers table
+        refresh_global_workspace_index(repo_root)
         return 0
 
     return 1

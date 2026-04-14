@@ -30,6 +30,7 @@ from pathlib import Path
 
 from common.paths import (
     FILE_JOURNAL_PREFIX,
+    FILE_TASK_JSON,
     get_repo_root,
     get_current_task,
     get_developer,
@@ -37,6 +38,7 @@ from common.paths import (
 )
 from common.developer import ensure_developer
 from common.git import run_git
+from common.io import read_json
 from common.tasks import load_task
 from common.config import (
     get_packages,
@@ -442,6 +444,142 @@ def add_session(
 
 
 # =============================================================================
+# From-Task Mode: auto-extract session from task.json
+# =============================================================================
+
+def _extract_commits_from_branch(
+    branch: str | None, repo_root: Path, base_branch: str | None = None
+) -> str:
+    """Extract commits for a branch compared to its base branch.
+
+    Args:
+        branch: The feature branch name.
+        repo_root: Repository root path.
+        base_branch: Explicit base branch from task.json. Falls back to main/master.
+
+    Returns:
+        Comma-separated commit hashes, or "-" if none found.
+    """
+    if not branch:
+        return "-"
+
+    # Use explicit base_branch from task.json, then fallback to main/master
+    candidates = []
+    if base_branch:
+        candidates.append(base_branch)
+    candidates.extend(["main", "master"])
+
+    for base in candidates:
+        rc, _, _ = run_git(["rev-parse", "--verify", base], cwd=repo_root)
+        if rc == 0:
+            rc, out, _ = run_git(
+                ["log", f"{base}..{branch}", "--oneline", "--format=%h"],
+                cwd=repo_root,
+            )
+            if rc == 0 and out.strip():
+                hashes = [h.strip() for h in out.strip().splitlines() if h.strip()]
+                return ",".join(hashes) if hashes else "-"
+            break
+
+    return "-"
+
+
+def _extract_summary_from_task(task_dir: Path) -> str:
+    """Extract summary from PRD or task description."""
+    prd_file = task_dir / "prd.md"
+    if prd_file.is_file():
+        try:
+            content = prd_file.read_text(encoding="utf-8")
+            # Find the first non-empty paragraph after the title
+            lines = content.splitlines()
+            in_body = False
+            summary_lines = []
+            for line in lines:
+                if line.startswith("# "):
+                    in_body = True
+                    continue
+                if in_body:
+                    stripped = line.strip()
+                    if stripped.startswith("##"):
+                        break
+                    if stripped:
+                        summary_lines.append(stripped)
+                    elif summary_lines:
+                        break
+            if summary_lines:
+                return " ".join(summary_lines)[:200]
+        except (OSError, IOError):
+            pass
+    return "(Auto-recorded session)"
+
+
+def add_session_from_task(task_json_path: Path, auto_commit: bool = False) -> int:
+    """Add a session by extracting info from a task.json file.
+
+    Called automatically by task.py finish.
+
+    Args:
+        task_json_path: Path to the task.json file.
+        auto_commit: Whether to auto-commit workspace changes.
+
+    Returns:
+        0 on success, 1 on error.
+    """
+    if not task_json_path.is_file():
+        print(f"Warning: task.json not found: {task_json_path}", file=sys.stderr)
+        return 1
+
+    data = read_json(task_json_path)
+    if not isinstance(data, dict):
+        print("Warning: Invalid task.json format", file=sys.stderr)
+        return 1
+
+    repo_root = get_repo_root()
+
+    # Pre-check: developer must be initialized (avoid sys.exit from ensure_developer)
+    if not get_developer(repo_root):
+        print("Warning: Developer not initialized, skipping session recording", file=sys.stderr)
+        return 1
+
+    task_dir = task_json_path.parent
+
+    # Extract fields from task.json
+    title = data.get("title") or data.get("name") or "unknown task"
+    branch = data.get("branch")
+    base_branch = data.get("base_branch")
+    commit = data.get("commit", "-") or "-"
+    description = data.get("description", "")
+
+    # Try to extract commits from branch; fallback to single commit
+    commits = _extract_commits_from_branch(branch, repo_root, base_branch)
+    if commits == "-" and commit and commit != "-":
+        commits = commit[:8]
+
+    # Extract summary from PRD or description
+    summary = description if description else _extract_summary_from_task(task_dir)
+
+    # Resolve package
+    package = data.get("package")
+
+    # Resolve branch: task.json → git auto-detect
+    if not branch:
+        _, branch_out, _ = run_git(["branch", "--show-current"], cwd=repo_root)
+        detected = branch_out.strip()
+        if detected:
+            branch = detected
+
+    return add_session(
+        title=title,
+        commit=commits,
+        summary=summary,
+        extra_content="(Auto-recorded from task completion)",
+        auto_commit=auto_commit,
+        package=package,
+        branch=branch,
+    )
+
+
+# =============================================================================
 # Main Entry
 # =============================================================================
 
@@ -450,7 +588,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Add a new session to journal file and update index.md"
     )
-    parser.add_argument("--title", required=True, help="Session title")
+    parser.add_argument("--title", help="Session title (required unless --from-task)")
     parser.add_argument("--commit", default="-", help="Comma-separated commit hashes")
     parser.add_argument("--summary", default="(Add summary)", help="Brief summary")
     parser.add_argument("--content-file", help="Path to file with detailed content")
@@ -460,8 +598,24 @@ def main() -> int:
                         help="Skip auto-commit of workspace changes")
     parser.add_argument("--stdin", action="store_true",
                         help="Read extra content from stdin (explicit opt-in)")
+    parser.add_argument("--from-task", metavar="TASK_JSON",
+                        help="Auto-extract session info from a task.json file")
 
     args = parser.parse_args()
+
+    # --from-task mode: auto-extract everything from task.json
+    if args.from_task:
+        task_json_path = Path(args.from_task)
+        if not task_json_path.is_absolute():
+            task_json_path = Path.cwd() / task_json_path
+        return add_session_from_task(
+            task_json_path,
+            auto_commit=not args.no_commit,
+        )
+
+    # --title is required in manual mode
+    if not args.title:
+        parser.error("--title is required (unless using --from-task)")
 
     extra_content = "(Add details)"
     if args.content_file:

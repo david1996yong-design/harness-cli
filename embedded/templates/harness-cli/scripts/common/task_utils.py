@@ -3,11 +3,12 @@
 Task utility functions.
 
 Provides:
-    is_safe_task_path   - Validate task path is safe to operate on
-    find_task_by_name   - Find task directory by name
-    resolve_task_dir    - Resolve task directory from name, relative, or absolute path
-    archive_task_dir    - Archive task to monthly directory
-    run_task_hooks      - Run lifecycle hooks for task events
+    is_safe_task_path              - Validate task path is safe to operate on
+    find_task_by_name              - Find task directory by name
+    resolve_task_dir               - Resolve task directory from name, relative, or absolute path
+    archive_task_dir               - Archive task to monthly directory
+    run_task_hooks                 - Run lifecycle hooks for task events
+    refresh_global_workspace_index - Refresh workspace/index.md after task state changes
 """
 
 from __future__ import annotations
@@ -242,7 +243,9 @@ def run_task_hooks(event: str, task_json_path: Path, repo_root: Path) -> None:
                 shell=True,
                 cwd=repo_root,
                 env=env,
-                capture_output=True,
+                capture_output=False,
+                stdout=None,
+                stderr=subprocess.PIPE,
                 text=True,
                 encoding="utf-8",
                 errors="replace",
@@ -252,13 +255,47 @@ def run_task_hooks(event: str, task_json_path: Path, repo_root: Path) -> None:
                     colored(f"[WARN] Hook failed ({event}): {cmd}", Colors.YELLOW),
                     file=sys.stderr,
                 )
-                if result.stderr.strip():
+                if result.stderr and result.stderr.strip():
                     print(f"  {result.stderr.strip()}", file=sys.stderr)
         except Exception as e:
             print(
                 colored(f"[WARN] Hook error ({event}): {cmd} — {e}", Colors.YELLOW),
                 file=sys.stderr,
             )
+
+
+# =============================================================================
+# Global Workspace Index Refresh
+# =============================================================================
+
+def refresh_global_workspace_index(repo_root: Path) -> None:
+    """Refresh workspace/index.md Active Developers table.
+
+    Called from task lifecycle commands (finish, archive) to keep the global
+    index in sync with active task assignments.
+
+    Non-blocking: any failure prints a warning and returns without raising.
+    Idempotent: calling multiple times produces identical results.
+
+    Args:
+        repo_root: Repository root path (needed to resolve workspace/tasks dirs).
+    """
+    from .log import Colors, colored
+
+    try:
+        # update_workspace_index.py is a sibling script of task.py, not in common/.
+        # Ensure the scripts dir is on sys.path for the import.
+        scripts_dir = str(Path(__file__).resolve().parent.parent)
+        if scripts_dir not in sys.path:
+            sys.path.insert(0, scripts_dir)
+        from update_workspace_index import update_workspace_index  # type: ignore
+
+        update_workspace_index(repo_root)
+    except (Exception, SystemExit) as e:
+        print(
+            colored(f"[WARN] Global workspace index refresh failed: {e}", Colors.YELLOW),
+            file=sys.stderr,
+        )
 
 
 # =============================================================================
