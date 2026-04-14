@@ -174,11 +174,93 @@ def _generate_prd(
 - [ ] Lint / 类型检查通过
 - [ ] 如行为变更，文档已更新
 
+## 测试方案
+
+> 框架无关：根据本项目实际语言/技术栈选择测试框架，本章节用于规划"测什么 / 怎么覆盖"。
+
+### 1. 测试范围
+- （本次变更涉及的模块/接口/页面）
+
+### 2. 测试框架选型
+- 主测试框架：（pytest / cargo test / JUnit / GoogleTest / go test / ctest / Jest / ... 根据本项目语言选择）
+- 执行命令：（例：`pytest tests/`、`cargo test --test xxx`、`mvn test -pl module`）
+
+### 3. 测试类型矩阵
+
+| 类型 | 是否需要 | 说明 |
+|------|---------|------|
+| 单元测试 | ☐ | |
+| 集成测试 | ☐ | |
+| 手动测试 | ☐ | |
+| 性能/压力 | ☐ | |
+
+### 4. 关键用例
+- 正常路径：
+- 异常路径：
+- 边界条件：
+
+### 5. 回归影响面 & 风险
+- 影响面：
+- 风险与未覆盖：
+
 ## Technical Notes
 
 （相关文件路径、技术约束、参考链接）
 
 {kb_section}"""
+
+
+TEST_REPORT_TEMPLATE = """# 测试报告
+
+> ⚠ 提交 PR 前请填写本文件，否则 PR body 将带「⚠ 测试报告未填写」标记。
+> 框架无关：运行命令、覆盖率工具等请按本项目实际栈填写。
+
+## 1. 执行环境
+- 分支 / commit：
+- 运行命令：（与 PRD 中「测试框架选型」对应，例：`pytest -v`、`cargo test`、`mvn test`）
+- 环境（OS / 依赖版本）：
+
+## 2. 用例执行结果
+
+| # | 用例 | 类型 | 结果 | 备注 |
+|---|------|------|------|------|
+| 1 | | unit / integration / manual | ✅ / ❌ | |
+
+## 3. 覆盖率 / 性能数据
+- （根据所用框架填入：pytest --cov、cargo tarpaulin、JaCoCo、benchmark 等）
+
+## 4. 已知问题与跳过项
+- （未通过用例、跳过原因）
+
+## 5. 回归验证
+- （影响面回归结论）
+"""
+
+
+def _generate_test_report(task_dir: Path) -> None:
+    """Auto-generate test-report.md template alongside prd.md.
+
+    Framework-agnostic: developers fill in actual commands/results based on
+    the project's language and chosen test framework.
+    """
+    report_path = task_dir / "test-report.md"
+    if report_path.exists():
+        return
+    report_path.write_text(TEST_REPORT_TEMPLATE, encoding="utf-8")
+
+
+def is_test_report_filled(report_path: Path) -> bool:
+    """Return True if test-report.md exists, is non-empty, and differs from the
+    initial template (i.e. developer has actually written content)."""
+    if not report_path.is_file():
+        return False
+    try:
+        content = report_path.read_text(encoding="utf-8")
+    except Exception:
+        return False
+    if not content.strip():
+        return False
+    return content.strip() != TEST_REPORT_TEMPLATE.strip()
 
 
 # =============================================================================
@@ -315,6 +397,9 @@ def cmd_create(args: argparse.Namespace) -> int:
             repo_root=repo_root,
         )
         prd_path.write_text(prd_content, encoding="utf-8")
+
+    # Generate test-report.md template (framework-agnostic)
+    _generate_test_report(task_dir)
 
     print(colored(f"Created task: {dir_name}", Colors.GREEN), file=sys.stderr)
     print("", file=sys.stderr)

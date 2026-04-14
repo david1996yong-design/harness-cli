@@ -37,6 +37,37 @@ from common.paths import (
     get_repo_root,
 )
 from common.phase import get_phase_for_action
+from common.task_store import is_test_report_filled
+
+
+# =============================================================================
+# PR Body Composition
+# =============================================================================
+
+_TEST_REPORT_MISSING_MARKER = "> ⚠ 测试报告未填写（test-report.md 缺失或仍为初始模板）"
+
+
+def _build_pr_body(target_dir_path: Path) -> tuple[str, bool]:
+    """Compose PR body from prd.md + test-report.md.
+
+    Layout: PRD → `---` → `## 测试报告` → report (or warning).
+    Submodule warning is prepended later by the caller.
+
+    Returns (body, report_filled).
+    """
+    prd_file = target_dir_path / "prd.md"
+    report_file = target_dir_path / "test-report.md"
+
+    prd_body = prd_file.read_text(encoding="utf-8") if prd_file.is_file() else ""
+    report_filled = is_test_report_filled(report_file)
+
+    if report_filled:
+        report_section = report_file.read_text(encoding="utf-8")
+    else:
+        report_section = _TEST_REPORT_MISSING_MARKER
+
+    parts = [prd_body.rstrip(), "", "---", "", "## 测试报告", "", report_section.rstrip(), ""]
+    return "\n".join(parts), report_filled
 
 # Colors, read_json, write_json
 # are now imported from common.log and common.io above.
@@ -496,15 +527,25 @@ def main() -> int:
     has_submodule_prs = bool(submodule_prs)
 
     if args.dry_run:
+        pr_body_preview, report_filled = _build_pr_body(target_dir_path)
+        if has_submodule_prs:
+            pr_body_preview = _build_submodule_warning(submodule_prs) + pr_body_preview
+        if not report_filled:
+            print(
+                f"{Colors.YELLOW}WARNING: test-report.md missing or unfilled — "
+                f"PR body will include 「⚠ 测试报告未填写」 marker{Colors.NC}"
+            )
         print("[DRY-RUN] Would create PR:")
         print(f"  Title: {pr_title}")
         print(f"  Base:  {base_branch}")
         print(f"  Head:  {current_branch}")
-        prd_file = target_dir_path / "prd.md"
-        if prd_file.is_file():
-            print("  Body:  (from prd.md)")
+        print(f"  Body:  (PRD + test-report, report_filled={report_filled})")
         if has_submodule_prs:
             print("  Body includes submodule merge warning")
+        print("  ----- PR BODY PREVIEW -----")
+        for line in pr_body_preview.splitlines():
+            print(f"  | {line}")
+        print("  ----- END PREVIEW -----")
         pr_url = "https://github.com/example/repo/pull/DRY-RUN"
     else:
         # Check if PR already exists
@@ -539,11 +580,13 @@ def main() -> int:
                     submodule_prs, args.dry_run
                 )
         else:
-            # Read PRD as PR body
-            pr_body = ""
-            prd_file = target_dir_path / "prd.md"
-            if prd_file.is_file():
-                pr_body = prd_file.read_text(encoding="utf-8")
+            # Build PR body: PRD + test-report (with soft-warning if unfilled)
+            pr_body, report_filled = _build_pr_body(target_dir_path)
+            if not report_filled:
+                print(
+                    f"{Colors.YELLOW}WARNING: test-report.md missing or unfilled — "
+                    f"PR body includes 「⚠ 测试报告未填写」 marker{Colors.NC}"
+                )
 
             # Prepend submodule warning if applicable
             if has_submodule_prs:

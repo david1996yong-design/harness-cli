@@ -42,6 +42,22 @@ Questions to answer:
 
 (To be filled by the team)
 
+### Per-Task Testing Workflow
+
+Every task auto-generates two files at creation time:
+
+- `prd.md` — contains a **「测试方案」** section (framework-agnostic). Fill in:
+  - 测试范围（涉及模块）
+  - 测试框架选型（按本项目语言选择 pytest / cargo test / JUnit / GoogleTest / ...）
+  - 测试类型矩阵（单元 / 集成 / 手动 / 性能）
+  - 关键用例 & 回归影响面
+- `test-report.md` — fill in before submitting PR:
+  - 执行环境 / 运行命令 / 用例结果 / 覆盖率 / 已知问题 / 回归验证
+
+`task.py create-pr` automatically composes the PR body from both files. If
+`test-report.md` is missing or unmodified, a 「⚠ 测试报告未填写」 marker is
+inserted (PR still goes through, with a soft warning).
+
 ---
 
 ## Code Review Checklist

@@ -195,21 +195,32 @@ python3 ./.harness-cli/scripts/task.py create "<title>" --slug <task-name>
 ```
 1. Create or select task
    --> python3 ./.harness-cli/scripts/task.py create "<title>" --slug <name> or list
+   --> Auto-generates: prd.md (含「测试方案」章节) + test-report.md (空模板)
 
-2. Write code according to guidelines
+2. Plan in PRD — fill the 测试方案 section
+   --> Choose test framework based on YOUR project's language (pytest / cargo test /
+       JUnit / GoogleTest / go test / ctest / Jest / ...). Template is framework-agnostic.
+
+3. Write code according to guidelines
    --> Read .harness-cli/spec/ docs relevant to your task
    --> For cross-layer: read .harness-cli/spec/guides/
 
-3. Self-test
-   --> Run project's lint/test commands (see spec docs)
-   --> Manual feature testing
+4. Self-test & fill test-report.md
+   --> Run project's lint/test commands (per PRD's chosen framework)
+   --> Record results in test-report.md (auto-appended to PR body)
 
-4. Commit code
+5. Commit code
    --> git add <files>
    --> git commit -m "type(scope): description"
        Format: feat/fix/docs/refactor/test/chore
 
-5. Record session (one command)
+6. Create PR (auto-composes body from PRD + test-report)
+   --> python3 ./.harness-cli/scripts/multi_agent/create_pr.py
+   --> PR body layout: PRD --- ## 测试报告 --- test-report (or「⚠ 未填写」 marker)
+   --> If test-report.md is missing or untouched, a soft warning is printed
+       and a marker is included in the PR body (PR is still created).
+
+7. Record session (one command)
    --> python3 ./.harness-cli/scripts/add_session.py --title "Title" --commit "hash"
 ```
 

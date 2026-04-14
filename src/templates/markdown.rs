@@ -241,6 +241,33 @@ mod tests {
     }
 
     #[test]
+    fn test_quality_guidelines_include_per_task_testing_workflow() {
+        // Per-Task Testing Workflow section is the contract that makes the
+        // PRD「测试方案」 + test-report.md flow discoverable from spec docs.
+        // If the embedded text loses this section, the workflow becomes invisible.
+        for (name, content) in [
+            ("backend_quality_guidelines", backend_quality_guidelines_content()),
+            ("frontend_quality_guidelines", frontend_quality_guidelines_content()),
+        ] {
+            assert!(
+                content.contains("Per-Task Testing Workflow"),
+                "{} should mention 'Per-Task Testing Workflow'",
+                name
+            );
+            assert!(
+                content.contains("测试方案"),
+                "{} should reference 「测试方案」 PRD section",
+                name
+            );
+            assert!(
+                content.contains("test-report.md"),
+                "{} should reference test-report.md",
+                name
+            );
+        }
+    }
+
+    #[test]
     fn test_kb_tech_templates_non_empty() {
         let templates: Vec<(&str, &str)> = vec![
             ("kb_tech_index", kb_tech_index_content()),
