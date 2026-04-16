@@ -20,3 +20,25 @@
 # Python cache (from embedded templates)
 __pycache__/
 *.pyc
+
+# Local AI tool configs
+.claude/
+.codex
+
+# Personal workspace assets (unrelated to CLI source)
+/workspace/
+
+# Harness CLI self-hosted runtime state
+/.harness-cli/workspace/
+/.harness-cli/worktree.yaml
+/.harness-cli/.current-task
+/.harness-cli/.template-hashes.json
+/.harness-cli/.version
+/.harness-cli/.gitignore
+/.harness-cli/scripts/
+/.harness-cli/spec/
+/.harness-cli/workflow.md
+/.harness-cli/config.yaml
+# Active (in-progress) tasks are local; archived tasks are kept as dog-food examples
+/.harness-cli/tasks/*
+!/.harness-cli/tasks/archive/

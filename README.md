@@ -13,12 +13,12 @@ Claude Code | Cursor | GitHub Copilot | Gemini CLI | Codex | iFlow | OpenCode | 
 ### One-line install (Linux / macOS)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/david1996yong-design/harness-cli-releases/master/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/david1996yong-design/harness-cli/master/install.sh | bash
 ```
 
 ### Manual download
 
-Download the binary for your platform from [GitHub Releases](https://github.com/david1996yong-design/harness-cli-releases/releases), extract it, and place it in your `PATH`.
+Download the binary for your platform from [GitHub Releases](https://github.com/david1996yong-design/harness-cli/releases), extract it, and place it in your `PATH`.
 
 | Platform | File |
 |----------|------|
