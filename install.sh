@@ -99,9 +99,9 @@ main() {
 
     local archive="${BINARY}-${target}.${ext}"
     local url="https://github.com/${REPO}/releases/download/${version}/${archive}"
-    local tmpdir
+    # tmpdir is intentionally global so the EXIT trap can still see it after main returns
     tmpdir=$(mktemp -d)
-    trap 'rm -rf "$tmpdir"' EXIT
+    trap 'rm -rf "${tmpdir:-}"' EXIT
 
     # Download
     info "Downloading ${url}"
