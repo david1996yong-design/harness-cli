@@ -39,6 +39,7 @@ __pycache__/
 /.harness-cli/spec/
 /.harness-cli/workflow.md
 /.harness-cli/config.yaml
+/.harness-cli/kb/.scan-cache.json
 # Active (in-progress) tasks are local; archived tasks are kept as dog-food examples
 /.harness-cli/tasks/*
 !/.harness-cli/tasks/archive/

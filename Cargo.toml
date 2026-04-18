@@ -44,6 +44,8 @@ regex = "1"
 tempfile = "3"
 # Git operations
 which = "7"
+# Gitignore-aware file traversal
+ignore = "0.4"
 
 [profile.release]
 opt-level = "z"

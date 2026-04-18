@@ -73,6 +73,8 @@ pub mod constructed {
     pub const KB_PRD: &str = ".harness-cli/kb/prd";
     /// `.harness-cli/kb/tech/`
     pub const KB_TECH: &str = ".harness-cli/kb/tech";
+    /// `.harness-cli/kb/.scan-cache.json` -- machine-generated index cache.
+    pub const KB_SCAN_CACHE: &str = ".harness-cli/kb/.scan-cache.json";
     /// `.harness-cli/.developer`
     pub const DEVELOPER_FILE: &str = ".harness-cli/.developer";
     /// `.harness-cli/.current-task`

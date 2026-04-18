@@ -27,3 +27,6 @@
 # Python cache
 **/__pycache__/
 **/*.pyc
+
+# KB scan cache (machine-generated; regenerated on demand)
+kb/.scan-cache.json

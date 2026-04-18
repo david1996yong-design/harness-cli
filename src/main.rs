@@ -97,6 +97,11 @@ enum Commands {
     Scan {
         #[arg(short = 'f', long, help = "Overwrite existing files without asking")]
         force: bool,
+        #[arg(
+            long,
+            help = "Also build the AI scan cache (.harness-cli/kb/.scan-cache.json)"
+        )]
+        index: bool,
     },
 
     /// Check environment and project health
@@ -247,7 +252,9 @@ fn main() {
                 monorepo: monorepo_opt,
             })
         }
-        Commands::Scan { force } => commands::scan::scan(commands::scan::ScanOptions { force }),
+        Commands::Scan { force, index } => {
+            commands::scan::scan(commands::scan::ScanOptions { force, index })
+        }
         Commands::Doctor {} => {
             commands::doctor::doctor(commands::doctor::DoctorOptions {})
         }

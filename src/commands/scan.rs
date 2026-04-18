@@ -10,6 +10,7 @@ use colored::Colorize;
 
 use crate::constants::paths::constructed;
 use crate::templates::markdown;
+use crate::utils::code_indexer;
 use crate::utils::file_writer::{ensure_dir, write_file};
 
 // =============================================================================
@@ -20,6 +21,8 @@ use crate::utils::file_writer::{ensure_dir, write_file};
 pub struct ScanOptions {
     /// Overwrite existing files without asking.
     pub force: bool,
+    /// Build a `.scan-cache.json` index for AI consumers.
+    pub index: bool,
 }
 
 // =============================================================================
@@ -46,6 +49,10 @@ pub fn scan(options: ScanOptions) -> Result<()> {
 
     if options.force {
         crate::utils::file_writer::set_write_mode(crate::utils::file_writer::WriteMode::Force);
+    } else if options.index {
+        // `scan --index` is often re-run to refresh the cache; never ask about
+        // existing skeleton files, just leave them alone.
+        crate::utils::file_writer::set_write_mode(crate::utils::file_writer::WriteMode::Skip);
     }
 
     println!("{}", "\n  Creating KB directory structure...\n".blue());
@@ -56,6 +63,10 @@ pub fn scan(options: ScanOptions) -> Result<()> {
     // Create kb/tech/
     create_kb_tech(&cwd)?;
 
+    if options.index {
+        build_scan_cache(&cwd)?;
+    }
+
     println!("{}", "\n  KB directory structure created!".green());
     println!("{}", "  Next steps:".dimmed());
     println!(
@@ -65,6 +76,46 @@ pub fn scan(options: ScanOptions) -> Result<()> {
     println!(
         "{}",
         "    - Run /hc:scan-kb-tech to generate architecture knowledge (kb/tech/)".dimmed()
+    );
+    if !options.index {
+        println!(
+            "{}",
+            "    - Run `harness-cli scan --index` to build the AI scan cache".dimmed()
+        );
+    }
+
+    Ok(())
+}
+
+// =============================================================================
+// Scan cache (AI consumer index)
+// =============================================================================
+
+fn build_scan_cache(cwd: &Path) -> Result<()> {
+    println!("{}", "\n  Building scan index...".blue());
+    let index = code_indexer::build_index(cwd)
+        .context("Failed to build scan index")?;
+
+    let cache_path = cwd.join(constructed::KB_SCAN_CACHE);
+    code_indexer::write_index(&index, &cache_path)
+        .context("Failed to write scan cache")?;
+
+    let cluster_count = index.clusters.len();
+    let file_count: usize = index.clusters.iter().map(|c| c.files.len()).sum::<usize>()
+        + index.unclustered_files.len();
+    let lang_count = index.language_stats.len();
+
+    println!(
+        "{}",
+        format!(
+            "    Scan index: {} clusters, {} files, {} languages",
+            cluster_count, file_count, lang_count
+        )
+        .blue()
+    );
+    println!(
+        "{}",
+        format!("    Wrote {}", constructed::KB_SCAN_CACHE).blue()
     );
 
     Ok(())

@@ -1,3 +1,4 @@
+pub mod code_indexer;
 pub mod compare_versions;
 pub mod file_writer;
 pub mod project_detector;
